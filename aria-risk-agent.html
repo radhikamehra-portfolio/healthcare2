@@ -1,391 +1,479 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ARIA — Anticipatory Risk Intelligence Agent</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ARIA — Unanticipatable Risk Intelligence Agent</title>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #07090f; --surface: #0e1117; --card: #131720; --card2: #181d27;
-  --border: #1e2535; --text: #e2e8f0; --muted: #64748b; --dim: #3a4357;
-  --accent: #6366f1; --accent2: #818cf8; --cyan: #22d3ee; --green: #34d399;
-  --warn: #fbbf24; --danger: #f87171; --purple: #c084fc;
-  --glow: 0 0 24px #6366f144;
-}
-body { background: var(--bg); color: var(--text); font-family: -apple-system,"Segoe UI",system-ui,sans-serif; font-size: 14px; line-height: 1.5; min-height:100vh; overflow-x:hidden; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0d14; --surface: #0f1320; --card: #131926; --card2: #1a2033;
+    --border: #1e2a40; --text: #d4e0f0; --muted: #64748b;
+    --accent: #7c3aed; --accent2: #a78bfa; --danger: #ef4444; --warn: #f59e0b;
+    --green: #10b981; --cyan: #22d3ee; --pink: #ec4899; --indigo: #6366f1;
+    --dim: #2a3550;
+    --glow: 0 0 20px rgba(124,58,237,0.3);
+  }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system,"Segoe UI",system-ui,sans-serif; font-size: 14px; line-height: 1.5; min-height:100vh; overflow-x:hidden; }
 
-/* ── Layout ── */
-.shell { display:grid; grid-template-rows: 56px 1fr; min-height:100vh; }
-.topbar { background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 24px; position:sticky; top:0; z-index:100; }
-.topbar-left { display:flex; align-items:center; gap:14px; }
-.logo-mark { width:32px; height:32px; background:var(--accent); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; color:white; letter-spacing:-.5px; box-shadow:var(--glow); }
-.logo-text { font-size:15px; font-weight:800; color:var(--text); letter-spacing:-.01em; }
-.logo-text span { color:var(--accent2); }
-.logo-sub { font-size:11px; color:var(--muted); }
-.topbar-right { display:flex; align-items:center; gap:10px; }
-.status-dot { width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); animation:blink 2s infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
-.status-label { font-size:12px; color:var(--green); font-weight:600; }
+  /* ── Layout ── */
+  .shell { display:grid; grid-template-rows: 56px 1fr; min-height:100vh; }
+  .topbar { background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 24px; position:sticky; top:0; z-index:100; }
+  .topbar-left { display:flex; align-items:center; gap:14px; }
+  .logo-mark { width:32px; height:32px; background:var(--accent); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; color:white; box-shadow:var(--glow); }
+  .logo-text { font-size:15px; font-weight:800; }
+  .logo-text span { color:var(--accent2); }
+  .logo-sub { font-size:11px; color:var(--muted); }
+  .topbar-right { display:flex; align-items:center; gap:10px; }
+  .unknown-badge { font-size:10px; font-weight:700; padding:3px 10px; border-radius:20px; border:1px solid var(--accent); color:var(--accent2); background: rgba(124,58,237,0.1); }
+  .status-dot { width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); animation:blink 2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .status-label { font-size:12px; color:var(--green); font-weight:600; }
 
-.content { display:grid; grid-template-columns:300px 1fr; height:calc(100vh - 56px); overflow:hidden; }
-.sidebar { background:var(--surface); border-right:1px solid var(--border); overflow-y:auto; padding:20px 16px; display:flex; flex-direction:column; gap:16px; }
-.main-panel { overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:16px; }
+  /* ── Content grid ── */
+  .content { display:grid; grid-template-columns:300px 1fr; height:calc(100vh - 56px); overflow:hidden; }
+  .sidebar { background:var(--surface); border-right:1px solid var(--border); overflow-y:auto; padding:20px 16px; display:flex; flex-direction:column; gap:16px; }
+  .main-panel { overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:16px; }
 
-/* ── Sidebar ── */
-.s-section { display:flex; flex-direction:column; gap:8px; }
-.s-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); padding-bottom:4px; border-bottom:1px solid var(--border); }
-.field { display:flex; flex-direction:column; gap:3px; }
-.field label { font-size:11px; color:var(--muted); }
-.field select, .field input[type=text] {
-  background:var(--card); border:1px solid var(--border); color:var(--text);
-  border-radius:6px; padding:7px 10px; font-size:12px; outline:none; width:100%;
-}
-.field select:focus, .field input[type=text]:focus { border-color:var(--accent); }
-.range-row { display:flex; align-items:center; gap:8px; }
-.field input[type=range] { flex:1; accent-color:var(--accent); cursor:pointer; }
-.range-val { font-size:11px; color:var(--accent2); font-weight:700; min-width:30px; text-align:right; }
-.toggle-row { display:flex; justify-content:space-between; align-items:center; }
-.toggle-row span { font-size:12px; color:var(--muted); }
-.toggle { position:relative; width:34px; height:18px; }
-.toggle input { opacity:0; width:0; height:0; }
-.sl { position:absolute; cursor:pointer; inset:0; background:var(--border); border-radius:18px; transition:.2s; }
-.sl::before { content:""; position:absolute; height:12px; width:12px; left:3px; bottom:3px; background:var(--muted); border-radius:50%; transition:.2s; }
-input:checked+.sl { background:var(--accent); }
-input:checked+.sl::before { transform:translateX(16px); background:white; }
+  /* ── Sidebar ── */
+  .s-section { display:flex; flex-direction:column; gap:8px; }
+  .s-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); padding-bottom:4px; border-bottom:1px solid var(--border); }
+  .field { display:flex; flex-direction:column; gap:3px; }
+  .field label { font-size:11px; color:var(--muted); }
+  .field select, .field input[type=text] { width:100%; background:var(--card); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:6px 8px; font-size:12px; outline:none; }
+  .field select:focus, .field input[type=text]:focus { border-color:var(--accent); }
+  .range-row { display:flex; align-items:center; gap:8px; }
+  .field input[type=range] { flex:1; accent-color:var(--accent2); cursor:pointer; }
+  .range-val { font-size:11px; color:var(--accent2); font-weight:700; min-width:30px; text-align:right; }
+  .toggle-row { display:flex; justify-content:space-between; align-items:center; }
+  .toggle-row span { font-size:12px; color:var(--muted); }
+  .toggle { position:relative; width:34px; height:18px; }
+  .toggle input { opacity:0; width:0; height:0; }
+  .sl { position:absolute; cursor:pointer; inset:0; background:var(--border); border-radius:18px; transition:.2s; }
+  .sl::before { content:""; position:absolute; height:12px; width:12px; left:3px; bottom:3px; background:var(--muted); border-radius:50%; transition:.2s; }
+  input:checked+.sl { background:var(--accent); }
+  input:checked+.sl::before { transform:translateX(16px); background:white; }
 
-.btn-aria {
-  background:linear-gradient(135deg,var(--accent),var(--purple));
-  color:white; border:none; border-radius:10px; padding:13px;
-  font-size:14px; font-weight:800; cursor:pointer; letter-spacing:.03em;
-  transition:opacity .15s,transform .1s; box-shadow:var(--glow); margin-top:4px;
-}
-.btn-aria:hover { opacity:.88; }
-.btn-aria:active { transform:scale(.97); }
-.btn-aria.running { animation:pulse 1s infinite alternate; }
-@keyframes pulse { from{opacity:1}to{opacity:.5} }
+  .btn-aria { width:100%; margin-top:auto; background:linear-gradient(135deg,var(--accent),var(--indigo)); color:white; border:none; border-radius:8px; padding:12px; font-size:14px; font-weight:700; cursor:pointer; transition:opacity .15s, transform .1s; letter-spacing:.02em; box-shadow:var(--glow); }
+  .btn-aria:hover { opacity:.88; }
+  .btn-aria:active { transform:scale(.97); }
+  .btn-aria.running { animation:pulse 1s infinite alternate; }
+  @keyframes pulse { from{opacity:1}to{opacity:.5} }
 
-/* ── Main header ── */
-.main-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
-.main-header h1 { font-size:18px; font-weight:800; color:var(--text); line-height:1.2; }
-.main-header h1 small { display:block; font-size:12px; font-weight:400; color:var(--muted); margin-top:2px; }
-.state-badges { display:flex; gap:8px; flex-wrap:wrap; }
-.sbadge { font-size:10px; font-weight:700; padding:3px 10px; border-radius:20px; border:1px solid; white-space:nowrap; }
-.sbadge.idle { color:var(--muted); border-color:var(--dim); }
-.sbadge.low { color:var(--green); border-color:var(--green); }
-.sbadge.medium { color:var(--warn); border-color:var(--warn); }
-.sbadge.high { color:var(--danger); border-color:var(--danger); }
-.sbadge.running { color:var(--accent2); border-color:var(--accent); animation:pulse 1s infinite alternate; }
+  /* ── Header ── */
+  .main-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+  .main-header h1 { font-size:17px; font-weight:800; }
+  .main-header h1 small { display:block; font-size:11px; font-weight:400; color:var(--muted); margin-top:2px; }
+  .state-badges { display:flex; gap:8px; flex-wrap:wrap; }
+  .sbadge { font-size:10px; font-weight:700; padding:3px 10px; border-radius:20px; border:1px solid; white-space:nowrap; }
+  .sbadge.idle { color:var(--muted); border-color:var(--dim); }
+  .sbadge.low { color:var(--green); border-color:var(--green); }
+  .sbadge.medium { color:var(--warn); border-color:var(--warn); }
+  .sbadge.high { color:var(--danger); border-color:var(--danger); }
+  .sbadge.running { color:var(--accent2); border-color:var(--accent); animation:pulse 1s infinite alternate; }
 
-/* ── KPI row ── */
-.kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
-.kpi { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
-.kpi-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
-.kpi-val { font-size:26px; font-weight:800; margin:3px 0 2px; }
-.kpi-sub { font-size:10px; color:var(--muted); }
-.kpi.c-accent .kpi-val { color:var(--accent2); }
-.kpi.c-warn .kpi-val { color:var(--warn); }
-.kpi.c-danger .kpi-val { color:var(--danger); }
-.kpi.c-green .kpi-val { color:var(--green); }
+  /* ── KPIs ── */
+  .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .kpi { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
+  .kpi-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
+  .kpi-val { font-size:26px; font-weight:800; margin:3px 0 2px; }
+  .kpi-sub { font-size:10px; color:var(--muted); }
+  .kpi.c-accent .kpi-val { color:var(--accent2); }
+  .kpi.c-warn .kpi-val { color:var(--warn); }
+  .kpi.c-danger .kpi-val { color:var(--danger); }
+  .kpi.c-cyan .kpi-val { color:var(--cyan); }
 
-/* ── Charts ── */
-.chart-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-.chart-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; }
-.chart-card h3 { font-size:12px; font-weight:600; color:var(--muted); margin-bottom:10px; display:flex;align-items:center;gap:6px; }
-.chart-card h3 .dot { width:7px;height:7px;border-radius:50%;flex-shrink:0; }
+  /* ── ARIA thinking stream ── */
+  .thinking-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px; }
+  .thinking-card h3 { font-size:12px; font-weight:600; color:var(--muted); margin-bottom:10px; display:flex;align-items:center;gap:6px; }
+  .thinking-stream { font-size:12px; color:var(--muted); font-family:"SF Mono","Fira Code",monospace; min-height:60px; max-height:120px; overflow-y:auto; line-height:1.7; }
+  .thinking-stream .tline { opacity:0; animation:fadeIn .3s forwards; }
+  .thinking-stream .tline.ok { color:var(--green); }
+  .thinking-stream .tline.info { color:var(--accent2); }
+  .thinking-stream .tline.warn { color:var(--warn); }
+  .thinking-stream .tline.unk { color:var(--cyan); }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none} }
 
-/* ── Risk Register ── */
-.register-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; }
-.register-card h3 { font-size:12px; font-weight:600; color:var(--muted); margin-bottom:12px; display:flex;justify-content:space-between;align-items:center; }
-.register-card h3 .filter-row { display:flex;gap:6px; }
-.filter-btn { font-size:10px; padding:2px 10px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; transition:.15s; }
-.filter-btn.active, .filter-btn:hover { background:var(--accent); border-color:var(--accent); color:white; }
-.risk-list { display:flex; flex-direction:column; gap:6px; }
-.risk-item {
-  display:grid; grid-template-columns:28px 1fr auto auto auto; gap:10px; align-items:center;
-  padding:10px 12px; background:var(--card2); border:1px solid var(--border); border-radius:8px;
-  border-left:3px solid var(--border); transition:border-color .2s, background .2s; cursor:pointer;
-}
-.risk-item:hover { background:#1c2235; }
-.risk-item.sev-critical { border-left-color:var(--danger); }
-.risk-item.sev-high { border-left-color:var(--warn); }
-.risk-item.sev-medium { border-left-color:var(--accent2); }
-.risk-item.sev-low { border-left-color:var(--green); }
-.risk-rank { font-size:11px; font-weight:700; color:var(--muted); text-align:center; }
-.risk-body .risk-name { font-size:13px; font-weight:600; color:var(--text); }
-.risk-body .risk-tags { display:flex; gap:4px; margin-top:3px; flex-wrap:wrap; }
-.rtag { font-size:10px; padding:1px 7px; border-radius:10px; background:var(--border); color:var(--muted); }
-.rtag.demographic { background:#1e2d3d; color:#60a5fa; }
-.rtag.climate { background:#1a2e22; color:#4ade80; }
-.rtag.cyber { background:#2a1a3e; color:#c084fc; }
-.rtag.supply { background:#2e2a1a; color:#fbbf24; }
-.rtag.behavioral { background:#2e1a1a; color:#f87171; }
-.rtag.technology { background:#1a2a2e; color:#22d3ee; }
-.rtag.compound { background:#1f1a2e; color:#a78bfa; }
-.risk-prob { text-align:center; }
-.prob-ring { width:44px; height:44px; }
-.risk-impact { font-size:11px; color:var(--muted); text-align:center; min-width:60px; }
-.risk-impact strong { display:block; font-size:13px; font-weight:700; }
-.risk-sev { font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; white-space:nowrap; }
-.sev-pill-critical { background:#3f1f1f; color:var(--danger); }
-.sev-pill-high { background:#3f2f1a; color:var(--warn); }
-.sev-pill-medium { background:#1f1f3f; color:var(--accent2); }
-.sev-pill-low { background:#1a3f2a; color:var(--green); }
+  /* ── Charts ── */
+  .chart-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .chart-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; }
+  .chart-card h3 { font-size:12px; font-weight:600; color:var(--muted); margin-bottom:10px; display:flex;align-items:center;gap:6px; }
+  .chart-card h3 .dot { width:7px;height:7px;border-radius:50%;flex-shrink:0; }
 
-/* ── World Model Panel ── */
-.world-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
-.world-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px; }
-.world-card h4 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); margin-bottom:10px; }
-.world-signal { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid var(--border); }
-.world-signal:last-child { border-bottom:none; }
-.ws-name { font-size:12px; color:var(--text); }
-.ws-bar-wrap { flex:1; margin:0 10px; height:4px; background:var(--border); border-radius:2px; overflow:hidden; }
-.ws-bar { height:100%; border-radius:2px; transition:width .8s ease; }
-.ws-val { font-size:11px; font-weight:700; min-width:28px; text-align:right; }
+  /* ── Unknown scenario register ── */
+  .register-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; }
+  .register-card h3 { font-size:12px; font-weight:600; color:var(--muted); margin-bottom:12px; display:flex;justify-content:space-between;align-items:center; }
+  .register-card h3 .filter-row { display:flex;gap:6px; }
+  .filter-btn { font-size:10px; padding:2px 10px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; transition:.15s; }
+  .filter-btn.active, .filter-btn:hover { background:var(--accent); border-color:var(--accent); color:white; }
+  .risk-list { display:flex; flex-direction:column; gap:6px; }
+  .risk-item { display:grid; grid-template-columns:28px 1fr 50px 70px 70px; align-items:center; gap:10px; padding:10px 12px; background:var(--surface); border-radius:8px; border:1px solid var(--border); border-left:3px solid; cursor:pointer; transition:background .15s; }
+  .risk-item:hover { background:var(--card2); }
+  .risk-item.sev-critical { border-left-color:var(--danger); }
+  .risk-item.sev-high { border-left-color:var(--warn); }
+  .risk-item.sev-medium { border-left-color:var(--indigo); }
+  .risk-item.sev-low { border-left-color:var(--green); }
+  .risk-rank { font-size:11px; font-weight:700; color:var(--muted); text-align:center; }
+  .risk-body .risk-name { font-size:13px; font-weight:600; color:var(--text); }
+  .risk-body .risk-tags { display:flex; gap:4px; margin-top:3px; flex-wrap:wrap; }
+  .rtag { font-size:10px; padding:1px 7px; border-radius:10px; background:var(--border); color:var(--muted); }
+  .rtag.demographic { background:#1e2d3d; color:#60a5fa; }
+  .rtag.climate { background:#1a2e22; color:#4ade80; }
+  .rtag.cyber { background:#2a1a3e; color:#c084fc; }
+  .rtag.supply { background:#2e2a1a; color:#fbbf24; }
+  .rtag.behavioral { background:#2e1a1a; color:#f87171; }
+  .rtag.technology { background:#1a2a2e; color:#22d3ee; }
+  .rtag.compound { background:#1f1a2e; color:#a78bfa; }
+  .rtag.emergent { background:#1a2030; color:#a78bfa; }
+  .rtag.unknown { background:#1a0a1a; color:#e879f9; }
+  .risk-prob { text-align:center; }
+  .prob-ring { width:44px; height:44px; }
+  .risk-impact { font-size:11px; color:var(--muted); text-align:center; min-width:60px; }
+  .risk-impact strong { display:block; font-size:13px; font-weight:700; }
+  .risk-sev { font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; white-space:nowrap; text-align:center; }
+  .sev-pill-critical { background:#3f1f1f; color:var(--danger); }
+  .sev-pill-high { background:#3f2f1a; color:var(--warn); }
+  .sev-pill-medium { background:#1f1f3f; color:var(--accent2); }
+  .sev-pill-low { background:#1a3f2a; color:var(--green); }
 
-/* ── Thinking stream ── */
-.thinking-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px; }
-.thinking-card h3 { font-size:12px; font-weight:600; color:var(--muted); margin-bottom:10px; display:flex;align-items:center;gap:6px; }
-.thinking-stream { font-size:12px; color:var(--muted); font-family:"SF Mono","Fira Code",monospace; min-height:60px; max-height:120px; overflow-y:auto; line-height:1.7; }
-.thinking-stream .tline { opacity:0; animation:fadeIn .3s forwards; }
-.thinking-stream .tline.ok { color:var(--green); }
-.thinking-stream .tline.info { color:var(--accent2); }
-.thinking-stream .tline.warn { color:var(--warn); }
-@keyframes fadeIn { from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none} }
-.cursor { display:inline-block; width:7px; height:12px; background:var(--accent2); animation:blink 0.7s infinite; vertical-align:middle; margin-left:3px; }
+  /* ── Department Dependency ── */
+  .dept-section { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; }
+  .dept-section h3 { font-size:12px; font-weight:600; color:var(--muted); margin-bottom:12px; }
+  .dept-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+  .dept-node { background:var(--surface); border:2px solid var(--border); border-radius:8px; padding:9px 6px; text-align:center; transition:border-color .4s, background .4s; position:relative; }
+  .dept-node .dept-icon { font-size:16px; margin-bottom:3px; }
+  .dept-node .dept-name { font-size:10px; font-weight:600; color:var(--text); }
+  .dept-node .dept-score { font-size:10px; font-weight:700; margin-top:3px; }
+  .dept-node .unknown-marker { font-size:9px; color:var(--accent2); margin-top:2px; }
+  .dept-node.impact-crit { border-color:var(--danger); background:#1a0d0d; }
+  .dept-node.impact-high { border-color:var(--warn); background:#1a150a; }
+  .dept-node.impact-med { border-color:var(--accent2); background:#130a1a; }
+  .dept-node.impact-low { border-color:var(--green); background:#0a1a0a; }
+  .dept-node.impact-none { border-color:var(--border); }
+  .cascade-chain { display:flex; flex-wrap:wrap; gap:5px; margin-top:10px; }
+  .cascade-tag { font-size:10px; padding:2px 9px; border-radius:10px; background:var(--border); color:var(--muted); }
+  .cascade-tag.trigger { background:#2a0a2a; color:#e879f9; border:1px solid #7c3aed40; }
+  .unknown-cascade-note { font-size:11px; color:var(--accent2); margin-top:8px; line-height:1.5; padding:8px; background:rgba(167,139,250,0.08); border-radius:6px; border-left:2px solid var(--accent); }
 
-/* ── Expand modal ── */
-.modal-overlay { position:fixed;inset:0;background:#00000099;z-index:200;display:none;align-items:center;justify-content:center; }
-.modal-overlay.open { display:flex; }
-.modal { background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;max-width:540px;width:90%;position:relative; }
-.modal h2 { font-size:16px;font-weight:700;margin-bottom:8px; }
-.modal .close-btn { position:absolute;top:14px;right:14px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px; }
-.modal-section { margin-top:12px; }
-.modal-section h4 { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:5px; }
-.modal-section p { font-size:13px;color:var(--text);line-height:1.6; }
-.modal-row { display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px; }
-.modal-stat { background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center; }
-.modal-stat .ms-val { font-size:20px;font-weight:800;color:var(--accent2); }
-.modal-stat .ms-label { font-size:10px;color:var(--muted);margin-top:2px; }
-.action-list { display:flex;flex-direction:column;gap:4px;margin-top:6px; }
-.action-item { display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text); }
-.action-item::before { content:"→";color:var(--accent2);flex-shrink:0; }
+  /* ── World signals ── */
+  .world-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .world-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px; }
+  .world-card h4 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); margin-bottom:10px; }
+  .world-signal { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid var(--border); }
+  .world-signal:last-child { border-bottom:none; }
+  .ws-name { font-size:12px; color:var(--text); }
+  .ws-bar-wrap { flex:1; margin:0 10px; height:4px; background:var(--border); border-radius:2px; overflow:hidden; }
+  .ws-bar { height:100%; border-radius:2px; transition:width .8s ease; }
+  .ws-val { font-size:11px; font-weight:700; min-width:28px; text-align:right; }
 
-/* scrollbar */
-::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+  /* ── Cost-Benefit / Mitigation ── */
+  .cba-section { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; }
+  .cba-section h3 { font-size:12px; font-weight:600; color:var(--muted); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+  .cba-scenario-name { color:var(--accent2); font-size:12px; font-weight:700; }
+  .cba-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .cba-card { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px; }
+  .cba-card h4 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); margin-bottom:10px; }
+  .cba-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid var(--border); font-size:12px; }
+  .cba-row:last-child { border-bottom:none; }
+  .cba-row .label { color:var(--muted); }
+  .cba-row .val.red { color:var(--danger); font-weight:700; }
+  .cba-row .val.green { color:var(--green); font-weight:700; }
+  .cba-row .val.yellow { color:var(--warn); font-weight:700; }
+  .cba-row .val.purple { color:var(--accent2); font-weight:700; }
+  .cba-compare-chart { margin-top:14px; }
+  .cba-bar-label { font-size:11px; color:var(--muted); margin-bottom:3px; }
+  .cba-bar-track { height:20px; background:var(--border); border-radius:4px; overflow:hidden; margin-bottom:8px; }
+  .cba-bar-fill { height:100%; border-radius:4px; display:flex; align-items:center; padding:0 8px; font-size:10px; font-weight:700; color:white; transition:width 0.8s ease; white-space:nowrap; }
+  .cba-verdict { margin-top:10px; padding:10px; background:rgba(167,139,250,0.08); border-radius:6px; font-size:12px; line-height:1.6; color:var(--text); border-left:3px solid var(--accent); }
+  .cba-verdict strong { color:var(--accent2); }
+  .unknown-caveat { margin-top:8px; padding:8px; background:rgba(234,179,8,0.08); border-radius:6px; font-size:11px; color:var(--warn); border-left:2px solid var(--warn); }
+
+  /* ── Recommendations ── */
+  .rec-section { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; }
+  .rec-section h3 { font-size:12px; font-weight:600; color:var(--muted); margin-bottom:12px; }
+  .rec-list { display:flex; flex-direction:column; gap:8px; }
+  .rec-item { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 12px; border-left:3px solid var(--accent); }
+  .rec-item.rec-resilience { border-left-color:var(--cyan); }
+  .rec-item.rec-detection { border-left-color:var(--accent2); }
+  .rec-item.rec-adaptive { border-left-color:var(--warn); }
+  .rec-title { font-size:13px; font-weight:600; color:var(--text); }
+  .rec-meta { display:flex; gap:10px; margin-top:4px; font-size:11px; color:var(--muted); flex-wrap:wrap; }
+  .rec-meta span strong { color:var(--accent2); }
+  .rec-meta span.priority-high strong { color:var(--danger); }
+  .rec-meta span.priority-med strong { color:var(--warn); }
+  .rec-desc { font-size:12px; color:var(--muted); margin-top:5px; line-height:1.5; }
+  .rec-type-badge { font-size:9px; font-weight:700; padding:2px 8px; border-radius:10px; border:1px solid; }
+  .rec-type-badge.resilience { color:var(--cyan); border-color:var(--cyan); }
+  .rec-type-badge.detection { color:var(--accent2); border-color:var(--accent); }
+  .rec-type-badge.adaptive { color:var(--warn); border-color:var(--warn); }
+
+  /* ── Modal ── */
+  .modal-overlay { position:fixed;inset:0;background:#00000099;z-index:200;display:none;align-items:center;justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;max-width:580px;width:90%;position:relative; max-height:85vh; overflow-y:auto; }
+  .modal h2 { font-size:16px;font-weight:700;margin-bottom:8px;color:var(--text); }
+  .modal .close-btn { position:absolute;top:14px;right:14px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px; }
+  .modal-section { margin-top:12px; }
+  .modal-section h4 { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:5px; }
+  .modal-section p { font-size:13px;color:var(--text);line-height:1.6; }
+  .modal-row { display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px; }
+  .modal-stat { background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center; }
+  .modal-stat .ms-val { font-size:20px;font-weight:800;color:var(--accent2); }
+  .modal-stat .ms-label { font-size:10px;color:var(--muted);margin-top:2px; }
+  .action-list { display:flex;flex-direction:column;gap:4px;margin-top:6px; }
+  .action-item { display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text); }
+  .action-item::before { content:"→";color:var(--accent2);flex-shrink:0; }
+  .unknowable-note { margin-top:12px; padding:10px; background:rgba(234,179,8,0.08); border-radius:8px; font-size:12px; color:var(--warn); border:1px solid rgba(245,158,11,0.3); }
+  .modal-cba { margin-top:12px; background:var(--surface); border-radius:8px; padding:12px; border:1px solid var(--border); }
+  .modal-cba h4 { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px; }
+  .modal-cba-row { display:flex; justify-content:space-between; font-size:12px; padding:4px 0; border-bottom:1px solid var(--border); }
+  .modal-cba-row:last-child { border-bottom:none; }
+
+  ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 </style>
 </head>
 <body>
+<div class="shell">
 
-<!-- Topbar -->
-<div class="topbar">
-  <div class="topbar-left">
-    <div class="logo-mark">AI</div>
-    <div>
-      <div class="logo-text">ARIA <span>Risk Intelligence</span></div>
-      <div class="logo-sub">Anticipatory Risk Intelligence Agent · SixPoint Analytics</div>
-    </div>
-  </div>
-  <div class="topbar-right">
-    <div class="status-dot" id="statusDot"></div>
-    <div class="status-label" id="statusLabel">Standby</div>
-  </div>
-</div>
-
-<div class="content">
-
-  <!-- ── SIDEBAR ── -->
-  <aside class="sidebar">
-    <div class="s-section">
-      <div class="s-label">Facility Context</div>
-      <div class="field">
-        <label>Hospital Name / ID</label>
-        <input type="text" id="hospName" value="St. Mary's General" />
-      </div>
-      <div class="field">
-        <label>Facility Type</label>
-        <select id="facilType">
-          <option value="community">Community Hospital</option>
-          <option value="academic">Academic Medical Center</option>
-          <option value="rural">Rural Critical Access</option>
-          <option value="trauma">Level I Trauma Center</option>
-          <option value="childrens">Children's Hospital</option>
-          <option value="veterans">Veterans Affairs Hospital</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Bed Capacity</label>
-        <div class="range-row">
-          <input type="range" id="beds" min="25" max="1200" step="25" value="350" oninput="document.getElementById('bedsV').textContent=this.value"/>
-          <span class="range-val" id="bedsV">350</span>
-        </div>
-      </div>
-      <div class="field">
-        <label>Infrastructure Age (yrs)</label>
-        <div class="range-row">
-          <input type="range" id="age" min="1" max="80" value="22" oninput="document.getElementById('ageV').textContent=this.value"/>
-          <span class="range-val" id="ageV">22</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="s-section">
-      <div class="s-label">Regional Demographics</div>
-      <div class="field">
-        <label>Geographic Region</label>
-        <select id="region">
-          <option value="coastal_se">Coastal Southeast (FL/GA/SC)</option>
-          <option value="midwest_urban">Midwest Urban (IL/OH/MI)</option>
-          <option value="rural_appalachia">Rural Appalachia (KY/WV/TN)</option>
-          <option value="desert_sw">Desert Southwest (AZ/NM/NV)</option>
-          <option value="western_fire">Western Wildfire Zone (CA/OR)</option>
-          <option value="northern_plains">Northern Plains (MN/ND/SD)</option>
-          <option value="northeast_urban">Northeast Urban (NY/NJ/MA)</option>
-          <option value="gulf_coast">Gulf Coast (TX/LA/MS)</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Population Median Age</label>
-        <div class="range-row">
-          <input type="range" id="medAge" min="20" max="65" value="41" oninput="document.getElementById('medAgeV').textContent=this.value"/>
-          <span class="range-val" id="medAgeV">41</span>
-        </div>
-      </div>
-      <div class="field">
-        <label>Uninsured Rate (%)</label>
-        <div class="range-row">
-          <input type="range" id="uninsured" min="2" max="30" value="12" oninput="document.getElementById('uninsuredV').textContent=this.value+'%'"/>
-          <span class="range-val" id="uninsuredV">12%</span>
-        </div>
-      </div>
-      <div class="field">
-        <label>Poverty Rate (%)</label>
-        <div class="range-row">
-          <input type="range" id="poverty" min="4" max="40" value="16" oninput="document.getElementById('povertyV').textContent=this.value+'%'"/>
-          <span class="range-val" id="povertyV">16%</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="s-section">
-      <div class="s-label">World Model Signals</div>
-      <div class="toggle-row"><span>Climate Stress Layer</span><label class="toggle"><input type="checkbox" id="climate" checked/><span class="sl"></span></label></div>
-      <div class="toggle-row"><span>Geopolitical Risk</span><label class="toggle"><input type="checkbox" id="geopolitical" checked/><span class="sl"></span></label></div>
-      <div class="toggle-row"><span>Technology Failure Modes</span><label class="toggle"><input type="checkbox" id="techfail" checked/><span class="sl"></span></label></div>
-      <div class="toggle-row"><span>Behavioral / Social Stress</span><label class="toggle"><input type="checkbox" id="social" checked/><span class="sl"></span></label></div>
-      <div class="toggle-row"><span>Black Swan Generator</span><label class="toggle"><input type="checkbox" id="blackswan"/><span class="sl"></span></label></div>
-      <div class="field" style="margin-top:4px">
-        <label>Imagination Depth</label>
-        <div class="range-row">
-          <input type="range" id="depth" min="1" max="5" value="3" oninput="document.getElementById('depthV').textContent=['Shallow','Moderate','Deep','Very Deep','Extreme'][this.value-1]"/>
-          <span class="range-val" id="depthV">Deep</span>
-        </div>
-      </div>
-    </div>
-
-    <button class="btn-aria" id="ariaBtn" onclick="runARIA()">🔮 Activate ARIA Agent</button>
-  </aside>
-
-  <!-- ── MAIN PANEL ── -->
-  <main class="main-panel">
-
-    <!-- Header -->
-    <div class="main-header">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="logo-mark">AI</div>
       <div>
-        <h1 id="pageTitle">Unknown Risk Intelligence Dashboard
-          <small>Configure facility context and activate ARIA to generate risk scenarios</small>
-        </h1>
-      </div>
-      <div class="state-badges">
-        <span class="sbadge idle" id="badge1">WORLD MODEL: IDLE</span>
-        <span class="sbadge idle" id="badge2">RISK GEN: IDLE</span>
-        <span class="sbadge idle" id="badge3">EVAL: IDLE</span>
+        <div class="logo-text">ARIA <span>Unknown Risk Intelligence</span></div>
+        <div class="logo-sub">Unanticipatable Risk Agent · Imagination-Based Scenario Engine</div>
       </div>
     </div>
-
-    <!-- KPIs -->
-    <div class="kpi-row">
-      <div class="kpi c-danger">
-        <div class="kpi-label">Unknown Risk Score</div>
-        <div class="kpi-val" id="kpiScore">—</div>
-        <div class="kpi-sub">composite / 100</div>
-      </div>
-      <div class="kpi c-warn">
-        <div class="kpi-label">Scenarios Generated</div>
-        <div class="kpi-val" id="kpiScenarios">—</div>
-        <div class="kpi-sub">novel risk scenarios</div>
-      </div>
-      <div class="kpi c-accent">
-        <div class="kpi-label">Top Threat Probability</div>
-        <div class="kpi-val" id="kpiTopProb">—</div>
-        <div class="kpi-sub">highest single scenario</div>
-      </div>
-      <div class="kpi c-green">
-        <div class="kpi-label">Est. Max Financial Exposure</div>
-        <div class="kpi-val" id="kpiExposure">—</div>
-        <div class="kpi-sub">worst-case scenario</div>
-      </div>
+    <div class="topbar-right">
+      <span class="unknown-badge">⚠ UNKNOWN UNKNOWNS MODE</span>
+      <div class="status-dot" id="statusDot"></div>
+      <div class="status-label" id="statusLabel">Standby</div>
     </div>
+  </div>
 
-    <!-- Thinking stream -->
-    <div class="thinking-card">
-      <h3><span style="color:var(--accent2)">◈</span> ARIA Agent Reasoning Stream</h3>
-      <div class="thinking-stream" id="thinkStream">
-        <div class="tline info">[ ARIA ] Waiting for activation. Configure facility context and click "Activate ARIA Agent".</div>
-      </div>
-    </div>
+  <div class="content">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
 
-    <!-- Charts -->
-    <div class="chart-row">
-      <div class="chart-card">
-        <h3><span class="dot" style="background:var(--danger)"></span> Risk Category Breakdown</h3>
-        <div id="catChart" style="height:200px"></div>
-      </div>
-      <div class="chart-card">
-        <h3><span class="dot" style="background:var(--accent2)"></span> Probability vs. Impact Matrix</h3>
-        <div id="matrixChart" style="height:200px"></div>
-      </div>
-    </div>
-
-    <!-- World signals -->
-    <div class="world-row">
-      <div class="world-card">
-        <h4>🌍 Climate Signals</h4>
-        <div id="climateSignals"></div>
-      </div>
-      <div class="world-card">
-        <h4>🌐 Demographic Signals</h4>
-        <div id="demoSignals"></div>
-      </div>
-      <div class="world-card">
-        <h4>⚡ Technology Signals</h4>
-        <div id="techSignals"></div>
-      </div>
-    </div>
-
-    <!-- Risk Register -->
-    <div class="register-card">
-      <h3>
-        Unknown Risk Register — Ranked by Probability × Impact
-        <div class="filter-row">
-          <button class="filter-btn active" onclick="filterReg('all',this)">All</button>
-          <button class="filter-btn" onclick="filterReg('critical',this)">Critical</button>
-          <button class="filter-btn" onclick="filterReg('high',this)">High</button>
-          <button class="filter-btn" onclick="filterReg('medium',this)">Medium</button>
+      <div class="s-section">
+        <div class="s-label">Facility Context</div>
+        <div class="field">
+          <label>Hospital Name / ID</label>
+          <input type="text" id="hospName" value="St. Mary's General" />
         </div>
-      </h3>
-      <div class="risk-list" id="riskList">
-        <div style="text-align:center;color:var(--muted);padding:30px 0;font-size:13px">
-          Activate ARIA to generate your facility's unknown risk register
+        <div class="field">
+          <label>Facility Type</label>
+          <select id="facilType">
+            <option value="community">Community Hospital</option>
+            <option value="academic">Academic Medical Center</option>
+            <option value="rural">Rural Critical Access</option>
+            <option value="trauma">Level I Trauma Center</option>
+            <option value="childrens">Children's Hospital</option>
+            <option value="veterans">Veterans Affairs Hospital</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Bed Capacity</label>
+          <div class="range-row">
+            <input type="range" id="beds" min="25" max="1200" step="25" value="350" oninput="document.getElementById('bedsV').textContent=this.value"/>
+            <span class="range-val" id="bedsV">350</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Infrastructure Age (yrs)</label>
+          <div class="range-row">
+            <input type="range" id="age" min="1" max="80" value="22" oninput="document.getElementById('ageV').textContent=this.value"/>
+            <span class="range-val" id="ageV">22</span>
+          </div>
         </div>
       </div>
-    </div>
 
-  </main>
+      <div class="s-section">
+        <div class="s-label">Regional Demographics</div>
+        <div class="field">
+          <label>Geographic Region</label>
+          <select id="region">
+            <option value="coastal_se">Coastal Southeast (FL/GA/SC)</option>
+            <option value="midwest_urban">Midwest Urban (IL/OH/MI)</option>
+            <option value="rural_appalachia">Rural Appalachia (KY/WV/TN)</option>
+            <option value="desert_sw">Desert Southwest (AZ/NM/NV)</option>
+            <option value="western_fire">Western Wildfire Zone (CA/OR)</option>
+            <option value="northern_plains">Northern Plains (MN/ND/SD)</option>
+            <option value="northeast_urban">Northeast Urban (NY/NJ/MA)</option>
+            <option value="gulf_coast">Gulf Coast (TX/LA/MS)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Population Median Age</label>
+          <div class="range-row">
+            <input type="range" id="medAge" min="20" max="65" value="41" oninput="document.getElementById('medAgeV').textContent=this.value"/>
+            <span class="range-val" id="medAgeV">41</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Uninsured Rate (%)</label>
+          <div class="range-row">
+            <input type="range" id="uninsured" min="2" max="30" value="12" oninput="document.getElementById('uninsuredV').textContent=this.value+'%'"/>
+            <span class="range-val" id="uninsuredV">12%</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Poverty Rate (%)</label>
+          <div class="range-row">
+            <input type="range" id="poverty" min="4" max="40" value="16" oninput="document.getElementById('povertyV').textContent=this.value+'%'"/>
+            <span class="range-val" id="povertyV">16%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="s-section">
+        <div class="s-label">Imagination Engine Signals</div>
+        <div class="toggle-row"><span>Emergent Technology Failures</span><label class="toggle"><input type="checkbox" id="techfail" checked/><span class="sl"></span></label></div>
+        <div class="toggle-row"><span>Unprecedented Climate Cascades</span><label class="toggle"><input type="checkbox" id="climate" checked/><span class="sl"></span></label></div>
+        <div class="toggle-row"><span>Social / Behavioral Emergence</span><label class="toggle"><input type="checkbox" id="social" checked/><span class="sl"></span></label></div>
+        <div class="toggle-row"><span>Geopolitical Spillover</span><label class="toggle"><input type="checkbox" id="geopolitical" checked/><span class="sl"></span></label></div>
+        <div class="toggle-row"><span>Black Swan + Tail Risk</span><label class="toggle"><input type="checkbox" id="blackswan"/><span class="sl"></span></label></div>
+        <div class="field" style="margin-top:4px">
+          <label>Imagination Depth</label>
+          <div class="range-row">
+            <input type="range" id="depth" min="1" max="5" value="3" oninput="document.getElementById('depthV').textContent=['Shallow','Moderate','Deep','Very Deep','Extreme'][this.value-1]"/>
+            <span class="range-val" id="depthV">Deep</span>
+          </div>
+        </div>
+        <div style="margin-top:6px;font-size:11px;color:var(--accent2);line-height:1.6;padding:8px;background:rgba(167,139,250,0.07);border-radius:6px;border-left:2px solid var(--accent)">
+          ARIA operates in <strong>unanticipatable space</strong> — generating scenarios that have no established response protocol, no historical precedent, and no current risk management framework.
+        </div>
+      </div>
+
+      <button class="btn-aria" id="ariaBtn" onclick="runARIA()">🔮 Activate ARIA Agent</button>
+    </aside>
+
+    <!-- MAIN PANEL -->
+    <main class="main-panel">
+
+      <!-- Header -->
+      <div class="main-header">
+        <div>
+          <h1 id="pageTitle">Unanticipatable Risk Intelligence Dashboard
+            <small>Configure context and activate ARIA to generate unknown-unknown scenarios</small>
+          </h1>
+        </div>
+        <div class="state-badges">
+          <span class="sbadge idle" id="badge1">WORLD MODEL: IDLE</span>
+          <span class="sbadge idle" id="badge2">IMAGINATION: IDLE</span>
+          <span class="sbadge idle" id="badge3">EVAL: IDLE</span>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-row">
+        <div class="kpi c-danger">
+          <div class="kpi-label">Unknown Risk Score</div>
+          <div class="kpi-val" id="kpiScore">—</div>
+          <div class="kpi-sub">unanticipatable / 100</div>
+        </div>
+        <div class="kpi c-warn">
+          <div class="kpi-label">Scenarios Generated</div>
+          <div class="kpi-val" id="kpiScenarios">—</div>
+          <div class="kpi-sub">novel, context-free scenarios</div>
+        </div>
+        <div class="kpi c-accent">
+          <div class="kpi-label">Top Threat Probability</div>
+          <div class="kpi-val" id="kpiTopProb">—</div>
+          <div class="kpi-sub">highest imagined scenario</div>
+        </div>
+        <div class="kpi c-cyan">
+          <div class="kpi-label">Max Unknown Exposure</div>
+          <div class="kpi-val" id="kpiExposure">—</div>
+          <div class="kpi-sub">worst imagined case</div>
+        </div>
+      </div>
+
+      <!-- ARIA thinking stream -->
+      <div class="thinking-card">
+        <h3><span style="color:var(--accent2)">◈</span> ARIA Imagination Stream — Unknown Unknown Generation</h3>
+        <div class="thinking-stream" id="thinkStream">
+          <div class="tline info">[ ARIA ] Waiting for activation. Configure facility context and click "Activate ARIA Agent".</div>
+          <div class="tline unk">[ MODE ] This agent generates scenarios outside existing context — the unknown unknowns that standard risk registers cannot capture.</div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="chart-row">
+        <div class="chart-card">
+          <h3><span class="dot" style="background:var(--danger)"></span> Risk Category Breakdown (Unknown Space)</h3>
+          <div id="catChart" style="height:200px"></div>
+        </div>
+        <div class="chart-card">
+          <h3><span class="dot" style="background:var(--accent2)"></span> Probability vs. Impact Matrix (Imagined Scenarios)</h3>
+          <div id="matrixChart" style="height:200px"></div>
+        </div>
+      </div>
+
+      <!-- World Signals -->
+      <div class="world-row">
+        <div class="world-card">
+          <h4>🌍 Climate Emergence Signals</h4>
+          <div id="climateSignals"></div>
+        </div>
+        <div class="world-card">
+          <h4>🧬 Demographic Shift Signals</h4>
+          <div id="demoSignals"></div>
+        </div>
+        <div class="world-card">
+          <h4>⚡ Technology Instability Signals</h4>
+          <div id="techSignals"></div>
+        </div>
+      </div>
+
+      <!-- Department Dependency Network -->
+      <div class="dept-section">
+        <h3 id="deptTitle">🏥 Department Vulnerability Network — Unknown Failure Mode Propagation</h3>
+        <div class="dept-grid" id="deptGrid"></div>
+        <div id="cascadeArea" style="display:none">
+          <div class="cascade-chain" id="cascadeChain"></div>
+          <div class="unknown-cascade-note" id="cascadeNote"></div>
+        </div>
+      </div>
+
+      <!-- Risk Register -->
+      <div class="register-card">
+        <h3>
+          🔍 Unknown Risk Register — Imagined Scenarios
+          <div class="filter-row">
+            <button class="filter-btn active" onclick="filterReg('all',this)">All</button>
+            <button class="filter-btn" onclick="filterReg('critical',this)">Critical</button>
+            <button class="filter-btn" onclick="filterReg('high',this)">High</button>
+            <button class="filter-btn" onclick="filterReg('medium',this)">Medium</button>
+          </div>
+        </h3>
+        <div class="risk-list" id="riskList">
+          <div style="text-align:center;color:var(--muted);padding:30px 0;font-size:13px">Activate ARIA to generate unknown risk scenarios</div>
+        </div>
+      </div>
+
+      <!-- Cost-Benefit Analysis -->
+      <div class="cba-section">
+        <h3>💰 Resilience Investment Analysis — <span class="cba-scenario-name" id="cbaTitle">Select a scenario from the register above</span></h3>
+        <div id="cbaContent">
+          <div style="text-align:center;color:var(--muted);padding:20px 0;font-size:13px">Click any scenario in the risk register to load resilience investment analysis</div>
+        </div>
+      </div>
+
+      <!-- Recommendations -->
+      <div class="rec-section">
+        <h3>🛡️ Adaptive Resilience Recommendations — Preparing for the Unanticipatable</h3>
+        <div class="rec-list" id="recList">
+          <div style="text-align:center;color:var(--muted);padding:20px 0;font-size:13px">Activate ARIA to generate adaptive resilience recommendations</div>
+        </div>
+      </div>
+
+    </main>
+  </div>
 </div>
 
-<!-- Modal -->
+<!-- MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal">
     <button class="close-btn" onclick="document.getElementById('modalOverlay').classList.remove('open')">✕</button>
@@ -394,82 +482,103 @@ input:checked+.sl::before { transform:translateX(16px); background:white; }
 </div>
 
 <script>
-// ── ECharts ──
 let catChart, matrixChart;
 let allRisks = [];
 let currentFilter = 'all';
 
-// ── Risk scenario database (region-aware) ──
+// ── Unknown/unanticipatable risk scenarios by region ──
+// These are IMAGINED scenarios outside standard risk management — the unknown unknowns.
 const RISK_DB = {
   coastal_se: [
-    { name:"Post-Hurricane Climate Refugee Surge", cat:"demographic", prob:72, impact:88, desc:"A Category 4+ hurricane displaces 50,000+ coastal residents into the hospital's service area within 72 hours, overwhelming ED, social services, and supply chains simultaneously before FEMA coordination begins.", actions:["Pre-position surge tents and generator fuel 90-day supply","Establish MOU with 3 neighboring counties for mutual aid","Develop rapid credentialing protocol for volunteer clinical staff"] },
-    { name:"Saltwater Intrusion Contaminates Water Supply", cat:"climate", prob:51, impact:76, desc:"Rising sea levels cause saltwater intrusion into municipal aquifer, rendering tap water unsafe for sterile procedures. Standard water purification systems are not rated for salinity levels, disabling surgical suites.", actions:["Install reverse osmosis backup system rated for brackish water","Stock 60-day sterile water reserve","Identify alternate water source contracts"] },
-    { name:"Coral Reef Collapse Accelerates Novel Pathogen Vector", cat:"climate", prob:28, impact:91, desc:"Warmer coastal waters accelerate marine ecosystem collapse, forcing novel Vibrio species inland through flood events. Hospital lacks identification protocols for atypical wound infections presenting post-flooding.", actions:["Update wound culture protocols for atypical marine bacteria","Brief ED on signs of Vibrio vulnificus in flood wound presentations","Coordinate with CDC on rapid identification pathways"] },
-    { name:"Grid Failure During Peak Hurricane Season Surge", cat:"compound", prob:65, impact:94, desc:"Simultaneous hurricane surge + regional power grid failure + 3 nearby hospitals evacuating creates a compound scenario where patient load triples while generator capacity is rated for only 40% normal operations.", actions:["Audit generator capacity against worst-case patient census","Prioritize critical care equipment on dedicated generator circuits","Run quarterly compound event tabletop drills"] },
-    { name:"Misinformation-Driven Staff Exodus During Crisis", cat:"behavioral", prob:44, impact:79, desc:"Social media misinformation campaign falsely claims hospital is overwhelmed and dangerous, causing 35% of non-critical staff to not report during a declared disaster — amplifying the very crisis the misinformation described.", actions:["Establish verified internal communication channel staff trust","Develop rapid rumor-control protocol with public affairs","Pre-identify minimum staffing thresholds and surge volunteer registry"] },
-    { name:"AI Diagnostic Tool Systemic Failure Under Surge Conditions", cat:"technology", prob:38, impact:71, desc:"AI-assisted triage tool, trained on normal-volume data, produces systemic misclassifications when input distribution shifts during surge, sending high-acuity patients to low-priority queues.", actions:["Implement mandatory human-in-loop verification during surge mode","Establish out-of-distribution detection thresholds for AI tools","Create manual triage fallback protocol that all staff can execute"] },
+    { name:"AI Flood Model Inversion Causes Premature Evacuation", cat:"technology", prob:38, impact:74, desc:"FEMA's AI-powered flood prediction model, trained primarily on historical data, inverts its confidence interval during a novel Atlantic circulation pattern — projecting 'safe' conditions during an approaching 500-year surge while generating false alarms that exhausted staff 72 hours prior. No standard risk register anticipates AI overconfidence causing harm in both directions simultaneously.", actions:["Mandate human meteorologist review of all AI-generated flood predictions before hospital action","Establish protocol for AI confidence interval reporting — not just prediction","Create staff fatigue tracking protocol to prevent false-alarm desensitization"] },
+    { name:"Coral-Borne Novel Probiotic Resistance Cascade", cat:"compound", prob:22, impact:89, desc:"Warming Caribbean waters cause genetic transfer between marine bacteria and common gut bacteria in coastal recreational swimmers. A novel antibiotic resistance mechanism begins appearing in surgical site infections — entirely outside existing surveillance frameworks because it has no terrestrial origin.", actions:["Establish passive marine ecology surveillance partnership with local university","Create 'unknown etiology' infection cohort tracking protocol in surgical units","Brief ID team on atypical resistance phenotype reporting pathways"] },
+    { name:"Social Media Coordination Causes Synchronized Discharge Demand", cat:"behavioral", prob:41, impact:67, desc:"A coordinated social media campaign, unrelated to public health, instructs followers to simultaneously request discharge from hospitals across the region as a protest action. The synchronized demand overwhelms discharge planning processes that assume organic distribution of requests over time.", actions:["Develop discharge surge detection algorithm in bed management system","Establish ICS threshold trigger when discharge requests exceed 2× predicted volume in any 4-hour window","Brief social media monitoring into the hospital's threat intelligence function"] },
+    { name:"Satellite Blackout Disables GPS-Dependent Medical Equipment", cat:"technology", prob:19, impact:88, desc:"A debris cascade from a satellite collision creates a Kessler Syndrome event in low Earth orbit, disabling GPS for 6–14 days. Unknown to most hospital administrators: insulin pumps, infusion pump timing synchronization, ventilator firmware time-stamping, and operating room navigation systems all depend on GPS timing signals.", actions:["Audit all medical devices for hidden GPS timing dependencies","Establish local cesium or rubidium clock backup for GPS-dependent systems","Test all clinical workflows under GPS blackout conditions"] },
   ],
   midwest_urban: [
-    { name:"Coordinated Multi-Hospital Ransomware Attack", cat:"cyber", prob:68, impact:92, desc:"Coordinated ransomware targeting all three major hospitals in the city simultaneously via shared EMR vendor, with attacks timed for a holiday weekend when IT staff is at minimum. City-wide EHR blackout for 7–14 days.", actions:["Eliminate shared vendor single points of failure","Mandate paper-based diversion drills quarterly","Establish air-gapped critical patient data backup"] },
-    { name:"Opioid Fentanyl Supply Contamination Wave", cat:"supply", prob:55, impact:83, desc:"Regional fentanyl supply contaminated with unknown adulterant causes 400+ simultaneous overdoses across the metro area, overwhelming naloxone stockpiles and toxicology capacity within 48 hours.", actions:["Maintain 90-day naloxone strategic reserve","Establish rapid toxicology surge protocol with poison control","Coordinate with EMS for pre-hospital naloxone deployment"] },
-    { name:"Aging Infrastructure Lead Pipe Activation Event", cat:"climate", prob:42, impact:67, desc:"Extreme freeze-thaw cycle fractures aging municipal lead pipes, releasing lead into hospital's cold water supply. Dialysis units and neonatal ICU face immediate crisis as contamination goes undetected for 48+ hours.", actions:["Install real-time water quality sensors on all clinical water sources","Establish protocol for immediate switch to bottled water for sensitive units","Test for pipe material in all clinical water supply lines"] },
-    { name:"Undocumented Immigrant Health Surge + Enforcement Chilling Effect", cat:"demographic", prob:61, impact:74, desc:"Immigration enforcement actions near the hospital cause vulnerable populations to avoid care until critically ill, then arrive simultaneously during a policy shift window. High acuity, language barriers, no records.", actions:["Develop trust-based intake protocols insulated from law enforcement","Maintain multilingual interpretation 24/7 coverage","Brief staff on trauma-informed care for displaced populations"] },
-    { name:"Extreme Urban Heat Island Event — Elderly Surge", cat:"climate", prob:58, impact:81, desc:"17-day heat dome exceeds historical records; dense urban heat island effect raises effective temperatures 8°F above surrounding suburbs. Elderly, unhoused, and dialysis-dependent populations present in mass.", actions:["Pre-identify heat-vulnerable patient registry for outreach","Establish mobile cooling center coordination with city emergency management","Activate community health worker surge protocol for home check-ins"] },
-    { name:"Deepfake Executive Credential Attack", cat:"cyber", prob:33, impact:69, desc:"AI-generated deepfake audio/video of the hospital CEO authorizes emergency wire transfers and system access changes to 'disaster vendors'. Financial and system compromise occurs before fraud detected.", actions:["Implement out-of-band verification for all executive financial authorizations","Brief C-suite and IT on deepfake attack vectors","Establish financial transaction velocity limits and anomaly alerts"] },
+    { name:"Coordinated Multi-Hospital Ransomware via Shared EMR Vendor", cat:"cyber", prob:68, impact:92, desc:"A novel ransomware strain targets a shared EMR vendor's update delivery pipeline — not the hospitals directly. When hospitals apply a routine security patch, the malware deploys. All hospitals using the shared vendor are compromised simultaneously before any can alert others. No existing playbook addresses vendor-chain supply compromise at this scale.", actions:["Establish air-gapped backup before any vendor patch deployment","Mandate staged patch deployment with 48-hour observation window before hospital-wide rollout","Create vendor-chain compromise incident response protocol"] },
+    { name:"Opioid Fentanyl Adulterant Creates Simultaneous Multi-System Surge", cat:"supply", prob:55, impact:83, desc:"Regional fentanyl supply contaminated with an entirely novel adulterant causes 400+ simultaneous overdoses with symptoms outside any known toxidrome. Existing naloxone-based protocols fail. Toxicology databases have no reference entry. The hospital system has no protocol for a mass casualty event where the antidote is unknown.", actions:["Develop 'unknown toxidrome' mass casualty protocol with empirical treatment pathways","Pre-establish direct connection to FDA MedWatch and CDC toxicology hot lines for real-time consultation","Brief ED on supportive care protocols for unknown toxic ingestion at mass scale"] },
+    { name:"Deepfake Executive Orders Redirect Critical Supplies", cat:"cyber", prob:33, impact:75, desc:"Realistic AI-generated audio deepfakes impersonating the hospital CMO redirect pharmaceutical shipments to fraudulent addresses during a supply shortage. The fraud is undetected for 96 hours because the voice authentication matches and the action seems consistent with known crisis behavior. No existing verification protocol exists for real-time verbal executive authorization.", actions:["Implement out-of-band code-word verification for all supply chain authorizations","Establish dual-authorization for supply chain decisions above $10K during declared emergencies","Brief supply chain managers on voice deepfake attack vectors"] },
+    { name:"Aging Water Infrastructure Immune Suppressor Release", cat:"technology", prob:28, impact:91, desc:"Aging municipal lead and copper water pipes, stressed by an unusual temperature spike, leach an unprecedented combination of heavy metals that act synergistically as immunosuppressants. ICU patients begin experiencing unusual infections 72 hours after consumption. No standard water quality test panel includes this multi-metal interaction.", actions:["Install continuous multi-parameter water quality monitoring beyond standard EPA panel","Establish unexplained immunosuppression cluster detection trigger in ICU","Create rapid-response protocol for triggering bottled/sterile water within 2 hours of cluster detection"] },
   ],
   rural_appalachia: [
-    { name:"Sole Provider Closure Cascade", cat:"compound", prob:71, impact:97, desc:"Hospital is the sole provider within 90 miles. Financial distress forces closure of two neighboring CAHs within 18 months, redirecting their entire patient load with no capacity increase. Staff attrition follows financial uncertainty.", actions:["Develop regional mutual aid compact with remaining facilities","Activate telemedicine infrastructure to manage non-acute redirects","Pursue HRSA rural health stabilization funding pre-emptively"] },
-    { name:"Opioid Treatment Program Disruption Surge", cat:"behavioral", prob:66, impact:85, desc:"Federal regulatory change or funding cut eliminates the county's only MAT clinic. Patients in withdrawal present to ED in waves over 30 days with no community mental health capacity to absorb them.", actions:["Establish bridge MAT prescribing protocol in ED","Train ED staff in buprenorphine initiation","Advocate for county co-location of behavioral health in facility"] },
-    { name:"Broadband Outage Collapses Telehealth During Weather Event", cat:"technology", prob:59, impact:72, desc:"Single fiber line serving 3 counties severed during winter storm. Hospital's telemedicine, remote specialist consults, and EHR cloud access all fail simultaneously during peak demand period.", actions:["Establish satellite backup communications for critical telemedicine","Identify on-call specialists reachable by phone for voice-only consult","Maintain local EHR cache for essential patient records"] },
-    { name:"Drug Resistant TB Re-emergence in Mining Communities", cat:"demographic", prob:31, impact:88, desc:"Resurgence of drug-resistant TB in legacy mining communities with high silicosis prevalence — a comorbidity dramatically worsening outcomes. Hospital lacks isolation capacity and MDR-TB treatment protocols.", actions:["Conduct facility infection control gap analysis for airborne diseases","Establish direct relationship with state TB control program","Identify negative-pressure room capacity and equipment"] },
-    { name:"Flooding Isolates Hospital From Supply Route", cat:"climate", prob:63, impact:83, desc:"Record flooding closes both bridge access routes for 11 days. Hospital's 72-hour supply reserve is insufficient. Blood products, oxygen, and IV medications cannot be resupplied by road.", actions:["Identify helicopter landing zone and rooftop access for air supply drops","Increase on-site supply reserve to 14 days for critical consumables","Establish vendor contract for air supply delivery during declared emergencies"] },
+    { name:"Sole Provider Closure Triggers Regional Healthcare Vacuum", cat:"compound", prob:71, impact:97, desc:"Hospital is the sole provider within 90 miles. Financial distress forces closure of two neighboring CAHs within 18 months, redirecting their entire patient load. No existing protocol models what happens when patient load increases 300% in a facility with no capacity growth path and no mutual aid partners remaining.", actions:["Develop regional mutual aid compact with remaining facilities while they still exist","Activate telemedicine infrastructure to manage non-acute redirects immediately","Pursue HRSA rural health stabilization funding pre-emptively"] },
+    { name:"Viral Health Misinformation Creates Anti-Treatment Norm", cat:"behavioral", prob:48, impact:82, desc:"A community-specific, faith-influenced misinformation network builds widespread belief that hospital treatment is harmful for a particular condition. Patients arrive at dangerous acuity levels because community norms delay presentation. Standard public health messaging fails because the information ecosystem is closed to external sources.", actions:["Establish trusted community health worker relationships with key cultural influencers","Develop condition-specific 'when to seek care' materials co-created with community leaders","Brief ED on delayed-presentation acuity patterns and their community-specific triggers"] },
+    { name:"Broadband Failure Collapses Telehealth During Highest-Need Event", cat:"technology", prob:59, impact:72, desc:"The hospital's telemedicine, remote specialist consults, and EHR cloud access fail simultaneously when a single fiber line is severed during a winter storm — at the same moment it was needed most. No fallback exists because the hospital assumed broadband redundancy was someone else's responsibility.", actions:["Establish satellite backup communications for critical telemedicine","Identify on-call specialists reachable by voice-only consult","Maintain local EHR cache for essential patient records"] },
+    { name:"Drug-Resistant TB Resurgence in Unknown Silicosis Pocket", cat:"demographic", prob:31, impact:88, desc:"Resurgence of drug-resistant TB in a legacy mining community whose silicosis prevalence is unknown to local health systems — because those workers never self-identified to healthcare. When patients begin presenting, the epidemiological link is invisible. The hospital has no isolation capacity and no MDR-TB protocols.", actions:["Conduct facility infection control gap analysis for airborne diseases","Establish direct relationship with state TB control program","Identify negative-pressure room capacity and equipment"] },
   ],
   desert_sw: [
-    { name:"Prolonged Heat Dome + HVAC Cascade Failure", cat:"compound", prob:62, impact:89, desc:"21-day heat dome causes HVAC systems aged 25+ years to fail in sequence due to thermal overload. Medication storage, surgical suites, and patient rooms exceed safe temperature thresholds. Pharmacy loses temperature-sensitive drug inventory.", actions:["Conduct HVAC age and capacity audit against climate stress projections","Identify critical zones requiring dedicated cooling redundancy","Establish pharmaceutical temperature excursion response protocol"] },
-    { name:"Aquifer Depletion Forces Water Rationing", cat:"climate", prob:48, impact:76, desc:"Regional aquifer reaches critical levels; municipal water rationing begins. Hospital faces 30% water reduction. Surgical prep, dialysis, and autoclave sterilization are immediately affected.", actions:["Install greywater recycling for non-clinical uses","Conduct water dependency audit across all clinical operations","Negotiate priority water access contract with municipal authority during emergencies"] },
-    { name:"Mass Undocumented Migrant Medical Emergency", cat:"demographic", prob:55, impact:81, desc:"Large migrant group collapses in desert heat 15 miles from facility. Mass casualty event with heat stroke, dehydration, and trauma — none with medical records, some with unknown communicable diseases.", actions:["Develop mass casualty language-agnostic intake protocol","Brief ED on tropical and border region disease differentials","Establish presumptive isolation protocol for unknown communicable disease presentation"] },
-    { name:"Solar Flare Induces Regional Grid Instability", cat:"technology", prob:22, impact:95, desc:"Strong geomagnetic storm induces currents in regional power transmission lines, causing cascading grid failures. Hospital generator systems cycle unpredictably. Sensitive medical electronics sustain damage from power fluctuations.", actions:["Install medical-grade UPS on all critical imaging and life-support equipment","Develop surge protector audit protocol against geomagnetic event specifications","Establish equipment damage assessment checklist for rapid post-event triage"] },
-    { name:"Wildfire Smoke Triggers Mass Pulmonary Event", cat:"climate", prob:67, impact:84, desc:"Extended wildfire season creates 45-day AQI >300 event. Regional surge of COPD exacerbations, pediatric asthma attacks, and cardiac events overwhelm pulmonary care capacity. Ventilator supply insufficient.", actions:["Pre-position additional ventilators and nebulizers from state strategic reserve","Issue household air filtration guidance to vulnerable patient registries","Coordinate with public health on community-level intervention"] },
+    { name:"Prolonged Heat Dome Triggers Cascading HVAC Failure", cat:"compound", prob:62, impact:89, desc:"A 21-day heat dome causes HVAC systems to fail in sequence due to thermal overload — a failure mode that engineers did not model because no historical precedent existed for sustained temperatures exceeding design specs for 3+ weeks. Medication storage, surgical suites, and patient rooms exceed safe temperature thresholds before the cascade is understood.", actions:["Conduct HVAC age and capacity audit against 10-year climate stress projections","Identify critical zones requiring dedicated cooling redundancy","Establish pharmaceutical temperature excursion response protocol"] },
+    { name:"AI Diagnostic Hallucination During Surge Causes Mass Misclassification", cat:"technology", prob:35, impact:88, desc:"The hospital's AI-assisted triage tool, trained on normal-volume data distributions, begins producing systemic hallucinations when patient input volume and acuity distribution shift simultaneously during a heat surge. High-acuity patients are routed to low-priority queues because the model has never seen this combination. No monitoring alert exists for distributional shift in AI clinical tools.", actions:["Implement out-of-distribution detection and human-override trigger for AI triage tools","Mandate parallel human triage verification during declared mass casualty or surge events","Establish AI audit trail review within 4 hours when triage diverges from attending physician assessments"] },
+    { name:"Aquifer Depletion Creates Unknown Mineral Concentration in Supply", cat:"climate", prob:48, impact:76, desc:"As regional aquifer levels fall, mineral concentration in municipal water supply crosses a threshold that standard treatment does not adjust for — producing an unknown effect on sterilization chemistry in central sterile. Surgical instruments appear clean but are carrying trace mineral residue that standard sterility testing misses.", actions:["Install greywater recycling for non-clinical uses","Conduct water dependency audit across all clinical operations","Commission independent water quality assessment including non-standard mineral panels"] },
+    { name:"Solar Geomagnetic Storm Disables Electronic Medical Records", cat:"technology", prob:22, impact:95, desc:"A strong geomagnetic storm induces ground currents that cause correlated failures across all unshielded electronic systems simultaneously — including backup systems on the same ground plane. This failure mode is known in electrical engineering but not in hospital infrastructure design. No existing hospital downtime protocol assumes both primary and all backups fail simultaneously.", actions:["Install medical-grade UPS on all critical imaging and life-support equipment with galvanic isolation","Develop 'total electronic failure' manual care protocol beyond standard EHR downtime","Establish equipment damage assessment checklist for rapid post-event triage"] },
   ],
   western_fire: [
-    { name:"Hospital Evacuation + Wildfire Encirclement", cat:"climate", prob:61, impact:98, desc:"Rapid wildfire spread encircles facility before evacuation can be completed. Smoke intake disables HVAC; power lines severed. Hospital must shelter-in-place with critical patients while fire is within 2 miles.", actions:["Develop tiered evacuation protocol with specific patient category priorities","Identify helicopter-accessible evacuation routes for ICU patients","Pre-position wildfire-specific PPE and smoke filtering for HVAC intake"] },
-    { name:"Toxic Ash Contaminates Regional Water Supply", cat:"climate", prob:44, impact:78, desc:"Post-wildfire runoff carries heavy metals and PFAS chemicals from burned structures into watershed. Municipal water becomes unsafe for clinical use. Hospitals receive no warning until staff report taste/odor changes.", actions:["Install continuous chemical water quality sensors on intake","Maintain 30-day sterile water reserve for clinical operations","Establish protocol for immediate water source switch on sensor alert"] },
-    { name:"Burn Victim Surge Exceeds Specialized Capacity", cat:"compound", prob:58, impact:91, desc:"Mass casualty wildfire event produces 300+ burn victims within 6 hours. Regional burn center capacity is 24 beds. Non-specialist hospitals must manage severe burns without trained staff, supplies, or protocols.", actions:["Train ED staff in burn triage and escharotomy basics","Stock wound care supplies for burn surge at 10x normal levels","Establish direct telemedicine consult link to nearest burn center"] },
-    { name:"Mental Health Crisis Wave — Wildfire PTSD", cat:"behavioral", prob:69, impact:68, desc:"18 months after major wildfire, delayed PTSD, substance use, and suicide ideation surge overwhelms inpatient psychiatric capacity. Presenting population includes previously healthy adults with no prior mental health history.", actions:["Expand psychiatric consult capacity through telehealth partnerships","Train primary care and ED staff in trauma screening and brief intervention","Develop community mental health surge plan with county behavioral health"] },
+    { name:"Wildfire PTSD Wave Creates Delayed Psychiatric Surge 18 Months Post-Event", cat:"behavioral", prob:69, impact:68, desc:"18 months after a major wildfire, delayed PTSD, substance use, and suicide ideation surge overwhelms inpatient psychiatric capacity. The affected population includes previously healthy adults with no prior mental health history — invisible to any existing behavioral health surveillance system. No hospital anticipated psychiatric surge as a 2-year delayed consequence of physical disaster.", actions:["Expand psychiatric consult capacity through telehealth partnerships","Train primary care and ED staff in trauma screening and brief intervention","Develop community mental health surge plan with county behavioral health"] },
+    { name:"Hospital Evacuation Rendered Impossible by Simultaneous Route Closure", cat:"compound", prob:61, impact:98, desc:"Rapid wildfire spread closes all three road evacuation routes within 4 hours — a scenario that the hospital's evacuation plan considered theoretically impossible based on historical fire behavior. Smoke intake disables HVAC; power lines severed. The hospital must shelter-in-place with critical ICU patients while fire is within 2 miles. No protocol exists for 'shelter-in-place during active wildfire'.", actions:["Develop tiered evacuation protocol with specific patient category priorities","Identify helicopter-accessible evacuation routes for ICU patients","Pre-position wildfire-specific PPE and smoke filtering for HVAC intake"] },
+    { name:"Burn Victim Surge Overwhelms Specialist Capacity Regionally", cat:"compound", prob:58, impact:91, desc:"Mass casualty wildfire event produces 300+ burn victims within 6 hours. Regional burn center capacity is 24 beds. Non-specialist hospitals must manage severe burns without trained staff, adequate supplies, or any protocol. The mutual aid system designed for this scenario assumed no more than 50 simultaneous burn patients. It has never been tested against reality.", actions:["Train ED staff in burn triage and escharotomy basics","Stock wound care supplies for burn surge at 10x normal levels","Establish direct telemedicine consult link to nearest burn center"] },
+    { name:"Toxic Ash Contaminates Municipal Water With Unknown PFAS Compounds", cat:"climate", prob:44, impact:78, desc:"Post-wildfire runoff carries a novel mixture of PFAS compounds from burned synthetic materials into the watershed — compounds whose health effects are unknown and whose detection requires testing methods not in any clinical or municipal water testing protocol. Hospitals receive no warning until staff report unusual taste changes.", actions:["Install continuous chemical water quality sensors on intake","Maintain 30-day sterile water reserve for clinical operations","Establish protocol for immediate water source switch on first sensor alert"] },
   ],
   northern_plains: [
-    { name:"Multi-Day Blizzard + Generator Fuel Exhaustion", cat:"compound", prob:60, impact:93, desc:"72-hour blizzard makes roads impassable; fuel delivery impossible. Hospital generator fuel reserve sufficient for 48 hours. Last 24 hours: critical care units on battery backup only.", actions:["Increase generator fuel storage to 7-day capacity minimum","Establish helicopter fuel delivery contract with prepayment","Conduct fuel consumption audit by unit to identify conservation opportunities"] },
-    { name:"Influenza + Blizzard Compound Patient Surge", cat:"compound", prob:65, impact:86, desc:"Peak influenza season aligns with 5-day blizzard. Staff cannot travel to work; patient volume surges while capacity drops 40%. Mutual aid from neighboring hospitals impossible due to identical conditions.", actions:["Develop shelter-in-place compensation policy to incentivize staff to stay on-site during weather events","Pre-position cots and supplies for 72-hour staff overnight","Establish minimum viable staffing protocol for each unit"] },
-    { name:"Extreme Cold + Infrastructure Pipe Freeze Cascade", cat:"climate", prob:55, impact:77, desc:"Record -40°F temperatures cause pipe freeze in facility wings built before 1990, disabling plumbing in surgical prep and sterilization. Emergency repairs take 5 days.", actions:["Conduct cold weather infrastructure audit of all pre-1990 building systems","Install heat tape and temperature monitoring on vulnerable pipe runs","Identify surgical case prioritization protocol for partial sterilization capacity"] },
-    { name:"Indigenous Community Health Crisis + Geographic Isolation", cat:"demographic", prob:48, impact:82, desc:"Health crisis in nearby tribal nation with limited road access — dialysis patients cannot travel during winter; COVID-analog spread through community. Hospital is closest facility but lacks cultural competency or tribal health coordination.", actions:["Establish formal partnership with tribal health department","Hire or contract Native American health liaisons","Develop mobile dialysis unit capability for road-accessible communities"] },
+    { name:"Blizzard Generator Fuel Exhaustion via Unknown Demand Spike", cat:"compound", prob:60, impact:93, desc:"A 72-hour blizzard makes roads impassable. Generator fuel reserve, calculated on historical usage, is insufficient because the hospital has added 40% more electronic equipment in the past 3 years without updating fuel consumption estimates. The gap is discovered at hour 36 when it is too late for any ground-based resupply. No process existed for recalibrating fuel estimates after equipment additions.", actions:["Recalibrate generator fuel consumption estimate annually after equipment inventory changes","Increase generator fuel storage to 7-day capacity minimum","Establish helicopter fuel delivery contract with prepayment"] },
+    { name:"Influenza Strain Requires Ventilator Settings Outside FDA-Cleared Parameters", cat:"technology", prob:28, impact:94, desc:"A novel influenza variant produces a unique respiratory failure pattern — extremely rapid compliance changes — that requires ventilator settings outside FDA-cleared parameter ranges. Respiratory therapists discover that adhering to cleared parameters results in worse outcomes, but using non-cleared settings creates liability exposure. No protocol exists for clinical imperative vs. regulatory compliance conflict at the bedside.", actions:["Establish 'compassionate use ventilator parameter' protocol with CMO authorization chain","Brief RT staff and intensivists on FDA emergency exception pathways","Create rapid institutional review pathway for bedside protocol deviation during mass casualty events"] },
+    { name:"Indigenous Community Health Data Gap Creates Invisible Surge", cat:"demographic", prob:48, impact:82, desc:"Health crisis in nearby tribal nation creates a surge that is invisible to all standard health system warning systems because tribal health data is not integrated with state surveillance systems. By the time patients are presenting to the hospital, the community outbreak is 3 weeks old. No early warning framework includes tribal health data feeds.", actions:["Establish formal partnership with tribal health department","Hire or contract Native American health liaisons","Develop data-sharing agreement with tribal health for syndromic surveillance integration"] },
+    { name:"Extreme Cold Causes Unknown Failure Mode in Medical Gas Lines", cat:"climate", prob:55, impact:77, desc:"Record -40°F temperatures cause contraction-induced micro-fractures in medical gas delivery lines installed in the 1970s — a failure mode not observed in manufacturer testing because those tests were conducted at temperatures 20° warmer. Oxygen delivery pressure fluctuations begin affecting ICU patients before the cause is identified.", actions:["Conduct cold weather infrastructure audit of all pre-1990 building systems","Install pressure monitoring on medical gas distribution lines with automatic alert","Identify surgical case prioritization protocol for partial gas system failure"] },
   ],
   northeast_urban: [
-    { name:"Cascading Building System Failure — Aging Hospital Tower", cat:"technology", prob:52, impact:84, desc:"Aging hospital tower (built 1960s) experiences simultaneous failure of electrical, HVAC, and fire suppression systems during extreme temperature event. Building must be evacuated with 180 inpatients.", actions:["Commission independent structural and systems audit of aging facility towers","Develop building-specific evacuation protocols by floor and unit type","Identify receiving capacity at network hospitals for rapid patient transfer"] },
-    { name:"Extreme Heat + Urban Density + Social Isolation Surge", cat:"demographic", prob:66, impact:79, desc:"Extreme heat event in dense urban neighborhood with high elderly, single-occupancy populations who have no AC and no social contact. Mass 911 calls on day 3 as heat stroke becomes widespread.", actions:["Partner with 311/social services on vulnerable resident mapping","Develop community health worker summer heat check-in protocol","Identify community cooling centers and transport coordination"] },
-    { name:"Pharmaceutical Supply Chain Disruption — Generic Drug Shortage", cat:"supply", prob:58, impact:72, desc:"Geopolitical disruption to Indian/Chinese API manufacturing eliminates supply of 12 critical generics simultaneously. Hospital formulary cannot substitute for all; rationing of critical medications required.", actions:["Conduct formulary vulnerability assessment by geographic source","Increase safety stock for top 50 volume generics to 90-day supply","Establish therapeutic substitution protocol for top shortage-vulnerable drugs"] },
-    { name:"Cyber Attack on Building Management Systems", cat:"cyber", prob:41, impact:88, desc:"Attackers compromise building management system (not EHR), locking HVAC, elevator controls, and door access systems. ICU temperature rises to unsafe levels; operating rooms inaccessible during active procedures.", actions:["Segment BMS network from clinical and administrative networks","Establish manual override capability for all critical building systems","Conduct BMS penetration test and remediation"] },
+    { name:"Aging Tower System Failure Cascade Under Extreme Heat", cat:"technology", prob:52, impact:84, desc:"Aging hospital tower built in the 1960s experiences simultaneous failure of electrical, HVAC, and fire suppression systems during an extreme temperature event — a failure mode that was theoretically impossible under individual system analysis but becomes inevitable under compound thermal stress. Building must be evacuated with 180 inpatients. No single-building mass evacuation protocol exists.", actions:["Commission independent structural and systems audit of aging facility towers","Develop building-specific evacuation protocols by floor and unit type","Identify receiving capacity at network hospitals for rapid patient transfer"] },
+    { name:"Pharmaceutical Supply Disruption Hits 12 Critical Generics Simultaneously", cat:"supply", prob:58, impact:72, desc:"Geopolitical disruption to Indian and Chinese API manufacturing eliminates supply of 12 critical generics simultaneously — a correlated shortage that existing supply chain models assumed was statistically impossible because the medications came from ostensibly different suppliers. All twelve share an API source that was invisible in the hospital's supplier mapping.", actions:["Conduct formulary vulnerability assessment by geographic source of API","Increase safety stock for top 50 volume generics to 90-day supply","Establish therapeutic substitution protocol for top shortage-vulnerable drugs"] },
+    { name:"Cyber Attack on Building Management System Locks OR During Active Surgery", cat:"cyber", prob:41, impact:88, desc:"Attackers compromise the building management system — not the EHR — locking HVAC controls, elevator access, and door locks. ICU temperatures rise to unsafe levels. Operating rooms become inaccessible during active procedures. The attack vector was completely outside the hospital's cyber defense perimeter because BMS was classified as 'facilities' not 'IT'.", actions:["Segment BMS network from clinical and administrative networks","Establish manual override capability for all critical building systems","Conduct BMS penetration test and remediation"] },
+    { name:"Social Isolation + Heat Creates Unknown Comorbidity Surge", cat:"demographic", prob:66, impact:79, desc:"Extreme heat event in dense urban neighborhood produces a surge of patients whose presenting conditions are atypical — not classic heat stroke but a novel combination of dehydration, medication toxicity (drug levels rise in dehydration), and social isolation-induced delayed presentation. No triage protocol captures this multi-factor presentation pattern.", actions:["Partner with 311/social services on vulnerable resident mapping","Develop community health worker summer heat check-in protocol","Brief ED on atypical heat + dehydration + medication toxicity presentation patterns"] },
   ],
   gulf_coast: [
-    { name:"Hurricane + Industrial Chemical Release Compound Event", cat:"compound", prob:57, impact:96, desc:"Major hurricane causes structural damage to nearby petrochemical facility, releasing toxic plume over hospital service area. Patients arrive with both trauma injuries and chemical exposure — protocols for neither exist simultaneously.", actions:["Develop combined mass casualty + HAZMAT decontamination protocol","Establish decontamination tent with 50-person/hour capacity","Coordinate with regional HAZMAT teams on joint response pre-agreement"] },
-    { name:"Extreme Flooding + Sewage System Backflow", cat:"climate", prob:63, impact:81, desc:"Storm surge exceeds sea walls; municipal sewage system backs up into hospital lower floors. Contamination reaches pharmacy storage, linen supply, and central sterile. Full clinical recovery requires 3 weeks.", actions:["Relocate all ground-floor critical storage to elevated locations","Install backflow prevention devices on all sewage connections","Develop ground floor contamination contingency with alternate storage mapping"] },
-    { name:"Heat-Aggravated Chronic Disease Surge — Dialysis Crisis", cat:"demographic", prob:60, impact:83, desc:"Extreme heat accelerates CKD progression in an already high-prevalence Gulf Coast population. Regional dialysis center closures (storm damage) redirect 400+ dialysis patients to hospital. No capacity exists.", actions:["Identify temporary dialysis capacity through mobile unit contracts","Develop priority dialysis triage protocol for most critical patients","Establish regional dialysis disruption mutual aid compact"] },
-    { name:"Pandemic Pathogen Introduced via Port of Entry", cat:"demographic", prob:35, impact:94, desc:"Novel pathogen enters via major Gulf Coast port city; hospital is first institutional contact point. Identification delayed by symptom overlap with common presentations. Containment window closes before isolation implemented.", actions:["Enhance syndromic surveillance integration with port health authority","Develop rapid novel pathogen presumptive isolation protocol","Brief ID and ED staff on emerging disease early warning signals"] },
-  ]
+    { name:"Hurricane + Industrial Chemical Release Creates Unknown Combined Exposure", cat:"compound", prob:57, impact:96, desc:"Major hurricane causes structural damage to a nearby petrochemical facility, releasing a novel mixture of industrial chemicals over the hospital service area. Patients arrive with both trauma injuries and chemical exposure from a compound whose combined effects are unknown to any toxicology database. No protocol exists for simultaneous trauma + unknown chemical mass casualty.", actions:["Develop combined mass casualty + HAZMAT decontamination protocol","Establish decontamination tent with 50-person/hour capacity","Coordinate with regional HAZMAT teams on joint response pre-agreement"] },
+    { name:"Heat-Accelerated Dialysis Need Outpaces Regional Machine Capacity by 400%", cat:"demographic", prob:60, impact:83, desc:"Extreme heat accelerates CKD progression in an already high-prevalence Gulf Coast population far faster than any epidemiological model predicted. Regional dialysis center closures from storm damage redirect patients to the hospital. The hospital has never modeled a 4× surge in dialysis demand because every historical model assumed gradual CKD progression.", actions:["Identify temporary dialysis capacity through mobile unit contracts","Develop priority dialysis triage protocol for most critical patients","Establish regional dialysis disruption mutual aid compact"] },
+    { name:"Novel Pathogen Enters via Port With No Surveillance Tripwire", cat:"demographic", prob:35, impact:94, desc:"A novel pathogen enters via a major Gulf Coast port where the airport health screening program does not cover. Port-of-entry health surveillance is entirely absent for maritime arrivals. The hospital is first institutional contact. Identification is delayed by 2 weeks because the pathogen's presentation overlaps with 6 common diagnoses, none of which triggers isolation protocol.", actions:["Enhance syndromic surveillance integration with port health authority","Develop rapid novel pathogen presumptive isolation protocol","Brief ID and ED staff on emerging disease early warning signals"] },
+    { name:"Sea Level Rise Causes Unknown Lateral Groundwater Infiltration Into Foundation", cat:"climate", prob:33, impact:71, desc:"Gradual sea level rise causes saltwater intrusion into the hospital's foundation drainage system — an effect no structural engineer modeled because it requires a 20-year timeframe that falls outside standard facility planning horizons. Structural corrosion begins affecting mechanical rooms and electrical conduits underground before any surface indicator appears.", actions:["Commission geotechnical survey of foundation drainage in coastal context","Install groundwater salinity monitoring around building perimeter","Develop 5–10 year facility resilience capital plan incorporating sea level projections"] },
+  ],
 };
 
 function rand(a,b){return Math.random()*(b-a)+a}
 function randInt(a,b){return Math.floor(rand(a,b+1))}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
-function fmt$M(v){ return v>=1e9?'$'+(v/1e9).toFixed(1)+'B': v>=1e6?'$'+(v/1e6).toFixed(1)+'M':'$'+Math.round(v/1e3)+'K'; }
+function fmt$M(v){ return v>=1e9?'$'+(v/1e9).toFixed(1)+'B':v>=1e6?'$'+(v/1e6).toFixed(1)+'M':'$'+Math.round(v/1e3)+'K'; }
+
+const DEPARTMENTS_ARIA = [
+  { id:'ED',    name:'Emergency',    icon:'🚨' },
+  { id:'ICU',   name:'ICU',          icon:'❤️' },
+  { id:'OR',    name:'Surgery / OR', icon:'🔪' },
+  { id:'EHR',   name:'EHR / IT',     icon:'💻' },
+  { id:'PHARM', name:'Pharmacy',     icon:'💊' },
+  { id:'RAD',   name:'Radiology',    icon:'🩻' },
+  { id:'LAB',   name:'Laboratory',   icon:'🧪' },
+  { id:'POWER', name:'Power / Utilities', icon:'⚡' },
+  { id:'SUPPLY',name:'Supply Chain', icon:'📦' },
+  { id:'ADMIN', name:'Administration',icon:'🗂️' },
+];
+
+// Dept cascade profiles per unknown scenario category
+const CAT_DEPT_CASCADE = {
+  technology: { primary:['EHR','POWER'], cascade:['ED','ICU','OR','RAD','LAB','PHARM'], note:'Technology failures propagate invisibly — systems assumed to be independent often share hidden dependencies. Cascade boundaries cannot be known in advance.' },
+  cyber:      { primary:['EHR'], cascade:['ED','ICU','OR','PHARM','LAB','RAD','ADMIN'], note:'Cyber attack blast radius depends on unknown network topology. Lateral movement discovers dependencies not documented in any asset inventory.' },
+  compound:   { primary:['ED','POWER','SUPPLY'], cascade:['ICU','OR','LAB','PHARM','RAD','EHR','ADMIN'], note:'Compound events create cascades that cross organizational silos. Each failure reduces capacity to respond to the next, creating non-linear amplification.' },
+  climate:    { primary:['POWER','SUPPLY'], cascade:['ED','ICU','OR','RAD','LAB','EHR','PHARM'], note:'Climate-driven failures affect physical infrastructure in ways no stress test has modeled. The cascade extends to any system that shares physical space or utilities.' },
+  behavioral: { primary:['ED','ADMIN'], cascade:['ICU','OR','SUPPLY','PHARM','LAB'], note:'Behavioral and social cascades are almost entirely unanticipatable. Human coordination failure amplifies every other system vulnerability.' },
+  demographic:{ primary:['ED','ICU'], cascade:['OR','LAB','PHARM','SUPPLY','RAD','ADMIN'], note:'Demographic surge scenarios overwhelm capacity assumptions built on historical distributions. The cascade is driven by volume, not system failure.' },
+  supply:     { primary:['SUPPLY','PHARM'], cascade:['ICU','OR','ED','LAB','RAD'], note:'Supply disruptions cascade based on clinical substitutability — a property not tracked in any supply chain system. Unknown substitution failures emerge only during the event.' },
+  emergent:   { primary:['EHR','POWER'], cascade:['ED','ICU','OR','PHARM','LAB','RAD'], note:'Emergent failures arise from interactions between systems designed independently. The cascade is definitionally uncharted because it has never occurred.' },
+  unknown:    { primary:['ED'], cascade:['ICU','OR','EHR','PHARM','LAB','POWER','SUPPLY','RAD','ADMIN'], note:'Unknown-unknown scenarios can propagate through any pathway. Full department vulnerability must be assumed until the failure mode is characterized.' },
+};
 
 function initCharts(){
   catChart = echarts.init(document.getElementById('catChart'),'dark');
   matrixChart = echarts.init(document.getElementById('matrixChart'),'dark');
   catChart.setOption({ backgroundColor:'transparent', series:[{type:'pie',data:[],radius:['35%','70%'],label:{show:false}}], legend:{show:false} });
-  matrixChart.setOption({ backgroundColor:'transparent', xAxis:{type:'value',min:0,max:100,name:'Probability (%)',nameTextStyle:{color:'#64748b',fontSize:10},axisLabel:{color:'#64748b',fontSize:10},splitLine:{lineStyle:{color:'#1e2535'}}}, yAxis:{type:'value',min:0,max:100,name:'Impact',nameTextStyle:{color:'#64748b',fontSize:10},axisLabel:{color:'#64748b',fontSize:10},splitLine:{lineStyle:{color:'#1e2535'}}}, grid:{left:48,right:16,top:16,bottom:40}, series:[{type:'scatter',data:[],symbolSize:10}], tooltip:{trigger:'item',formatter:p=>p.data[2]} });
+  matrixChart.setOption({ backgroundColor:'transparent', xAxis:{type:'value',min:0,max:100,name:'Probability (%)',nameTextStyle:{color:'#64748b',fontSize:10},axisLabel:{color:'#64748b',fontSize:10},splitLine:{lineStyle:{color:'#1e2a40'}}}, yAxis:{type:'value',min:0,max:100,name:'Impact',nameTextStyle:{color:'#64748b',fontSize:10},axisLabel:{color:'#64748b',fontSize:10},splitLine:{lineStyle:{color:'#1e2a40'}}}, grid:{left:48,right:16,top:16,bottom:40}, series:[{type:'scatter',data:[],symbolSize:10}], tooltip:{trigger:'item',formatter:p=>p.data[2]} });
+  renderDeptGrid(null, null);
 }
 
-const CAT_COLORS = { demographic:'#60a5fa', climate:'#4ade80', cyber:'#c084fc', supply:'#fbbf24', behavioral:'#f87171', technology:'#22d3ee', compound:'#a78bfa' };
+const CAT_COLORS = { demographic:'#60a5fa', climate:'#4ade80', cyber:'#c084fc', supply:'#fbbf24', behavioral:'#f87171', technology:'#22d3ee', compound:'#a78bfa', emergent:'#e879f9', unknown:'#f43f5e' };
 const SEV_ORDER = { critical:0, high:1, medium:2, low:3 };
 
 function getSeverity(prob,impact){
@@ -478,6 +587,23 @@ function getSeverity(prob,impact){
   if(score>=35) return 'high';
   if(score>=18) return 'medium';
   return 'low';
+}
+
+function renderDeptGrid(impacts, cascade_config){
+  const grid = document.getElementById('deptGrid');
+  grid.innerHTML = '';
+  DEPARTMENTS_ARIA.forEach(d => {
+    const score = impacts ? (impacts[d.id] || 0) : 0;
+    const isPrimary = cascade_config ? cascade_config.primary.includes(d.id) : false;
+    const isCascade = cascade_config ? cascade_config.cascade.includes(d.id) : false;
+    const cls = score >= 80 ? 'impact-crit' : score >= 60 ? 'impact-high' : score >= 35 ? 'impact-med' : score > 0 ? 'impact-low' : 'impact-none';
+    const scoreColor = score >= 80 ? '#ef4444' : score >= 60 ? '#f59e0b' : score >= 35 ? '#a78bfa' : score > 0 ? '#10b981' : '#64748b';
+    const unknownMark = isPrimary ? '⚠ TRIGGER' : isCascade && score > 30 ? '→ cascade' : '';
+    const node = document.createElement('div');
+    node.className = `dept-node ${cls}`;
+    node.innerHTML = `<div class="dept-icon">${d.icon}</div><div class="dept-name">${d.name}</div><div class="dept-score" style="color:${scoreColor}">${impacts ? score+'/100' : '—'}</div>${unknownMark ? `<div class="unknown-marker">${unknownMark}</div>` : ''}`;
+    grid.appendChild(node);
+  });
 }
 
 let thinkLines = [];
@@ -507,7 +633,7 @@ function clearThink(){
 async function runARIA(){
   const btn = document.getElementById('ariaBtn');
   btn.classList.add('running');
-  btn.textContent = '⏳ Agent Running…';
+  btn.textContent = '⏳ Imagining unknown scenarios…';
   btn.disabled = true;
 
   const statusDot = document.getElementById('statusDot');
@@ -518,7 +644,7 @@ async function runARIA(){
   statusLabel.style.color = 'var(--warn)';
 
   setBadge('badge1','WORLD MODEL: ACTIVE','running');
-  setBadge('badge2','RISK GEN: IDLE','idle');
+  setBadge('badge2','IMAGINATION: IDLE','idle');
   setBadge('badge3','EVAL: IDLE','idle');
 
   clearThink();
@@ -538,27 +664,25 @@ async function runARIA(){
   const blackswan = document.getElementById('blackswan').checked;
   const depth = parseInt(document.getElementById('depth').value);
 
-  // Thinking stream
-  await addThink(`[ ARIA ] Initializing world model for: ${hospName}`, 'info', 0);
-  await addThink(`[ WORLD ] Loading regional context: ${region.replace(/_/g,' ').toUpperCase()}`, 'info', 400);
-  await addThink(`[ DEMO ] Population median age: ${medAge} · Uninsured: ${uninsured}% · Poverty: ${poverty}%`, 'info', 800);
-  if(climate) await addThink(`[ CLIMATE ] Climate stress signals: ACTIVE — projecting 10yr trajectory`, 'ok', 1200);
-  if(geopolitical) await addThink(`[ GEO ] Geopolitical risk layer: ACTIVE — supply chain + migration vectors`, 'ok', 1600);
-  if(techfail) await addThink(`[ TECH ] Technology failure mode analysis: ACTIVE`, 'ok', 2000);
-  if(social) await addThink(`[ SOCIAL ] Behavioral and social stress signals: ACTIVE`, 'ok', 2400);
-  if(blackswan) await addThink(`[ ⚠ BLACKSWAN ] Black swan generator: ACTIVE — tail risk events included`, 'warn', 2800);
-  await addThink(`[ ARIA ] World model constructed. Beginning unknown risk imagination phase…`, 'info', 3200);
+  await addThink(`[ ARIA ] Initializing imagination engine for: ${hospName}`, 'info', 0);
+  await addThink(`[ MODE ] Operating in UNKNOWN UNKNOWN space — scenarios outside any existing risk register`, 'unk', 300);
+  await addThink(`[ WORLD ] Loading regional context: ${region.replace(/_/g,' ').toUpperCase()}`, 'info', 700);
+  await addThink(`[ DEMO ] Median age: ${medAge} · Uninsured: ${uninsured}% · Poverty: ${poverty}%`, 'info', 1100);
+  if(climate) await addThink(`[ CLIMATE ] Unprecedented climate cascade signals: ACTIVE — beyond historical bounds`, 'ok', 1500);
+  if(geopolitical) await addThink(`[ GEO ] Geopolitical spillover layer: ACTIVE — invisible supply chain vectors`, 'ok', 1900);
+  if(techfail) await addThink(`[ TECH ] Emergent technology failure modes: ACTIVE — systems not yet stress-tested`, 'ok', 2300);
+  if(social) await addThink(`[ SOCIAL ] Behavioral emergence signals: ACTIVE — coordination failure + social contagion`, 'ok', 2700);
+  if(blackswan) await addThink(`[ ⚠ BLACKSWAN ] Tail-risk imagination activated — events with no precedent`, 'warn', 3100);
+  await addThink(`[ ARIA ] World model constructed. Entering imagination phase — generating the unanticipatable…`, 'unk', 3500);
 
   setBadge('badge1','WORLD MODEL: READY','low');
-  setBadge('badge2','RISK GEN: ACTIVE','running');
+  setBadge('badge2','IMAGINATION: ACTIVE','running');
 
-  await addThink(`[ GEN ] Generating novel risk scenarios at intersection of world state × facility profile…`, 'info', 3800);
-  await addThink(`[ GEN ] Cross-referencing ${beds}-bed ${facilType} against ${depth*4} world state perturbations…`, 'info', 4400);
+  await addThink(`[ IMAGINE ] Cross-referencing facility profile with failure mode spaces OUTSIDE existing playbooks…`, 'info', 4100);
+  await addThink(`[ IMAGINE ] Generating scenarios at the intersection of: technology, climate, behavior, supply, and emergence…`, 'unk', 4700);
 
-  // Build risk list
   let risks = [...(RISK_DB[region] || RISK_DB['midwest_urban'])];
 
-  // Modulate probabilities by inputs
   const infraMod = 1 + (parseInt(infraAge)-20)/80;
   const ageMod = parseInt(medAge) > 50 ? 1.2 : parseInt(medAge) < 30 ? 0.9 : 1.0;
   const uninsuredMod = 1 + parseInt(uninsured)/60;
@@ -569,67 +693,110 @@ async function runARIA(){
   risks = risks.map(r=>{
     let p = r.prob;
     let im = r.impact;
-    if(r.cat==='climate') { p*= climate ? infraMod*ageMod : 0.6; }
-    if(r.cat==='cyber') { p*= techfail ? 1.1 : 0.7; }
-    if(r.cat==='demographic') { p*= uninsuredMod*povertyMod*ageMod; }
-    if(r.cat==='supply') { p*= geopolitical ? 1.15 : 0.8; }
-    if(r.cat==='behavioral') { p*= social ? 1.1 : 0.7; }
-    if(r.cat==='compound') { p*= depthMod; im += rand(0,8); }
+    if(r.cat==='climate') { p *= climate ? infraMod*ageMod : 0.6; }
+    if(r.cat==='cyber') { p *= techfail ? 1.1 : 0.7; }
+    if(r.cat==='technology') { p *= techfail ? 1.15 : 0.7; }
+    if(r.cat==='demographic') { p *= uninsuredMod*povertyMod*ageMod; }
+    if(r.cat==='supply') { p *= geopolitical ? 1.15 : 0.8; }
+    if(r.cat==='behavioral') { p *= social ? 1.1 : 0.7; }
+    if(r.cat==='compound') { p *= depthMod; im += rand(0,8); }
     if(blackswan) { p += blackSwanBonus*rand(0.5,1.5); im += rand(0,10); }
     p = clamp(Math.round(p*depthMod), 5, 97);
     im = clamp(Math.round(im + rand(-4,4)), 10, 99);
     return {...r, prob:p, impact:im, sev:getSeverity(p,im)};
   });
 
-  // Sort by composite score
   risks.sort((a,b)=> (b.prob/100)*(b.impact/100) - (a.prob/100)*(a.impact/100));
   allRisks = risks;
 
-  await addThink(`[ GEN ] ${risks.length} novel scenarios generated and calibrated`, 'ok', 5000);
-  await addThink(`[ GEN ] Running probability × impact scoring via Bayesian inference engine…`, 'info', 5600);
+  await addThink(`[ IMAGINE ] ${risks.length} novel unanticipatable scenarios generated`, 'ok', 5300);
+  await addThink(`[ IMAGINE ] Each scenario has NO existing hospital response protocol — by definition`, 'unk', 5900);
 
-  setBadge('badge2','RISK GEN: COMPLETE','low');
+  setBadge('badge2','IMAGINATION: COMPLETE','low');
   setBadge('badge3','EVAL: ACTIVE','running');
 
-  await addThink(`[ EVAL ] Scoring demographic amplifiers: age ${medAge}, uninsured ${uninsured}%, poverty ${poverty}%`, 'info', 6200);
-  await addThink(`[ EVAL ] Top scenario identified: "${risks[0].name}"`, 'warn', 6900);
+  await addThink(`[ EVAL ] Scoring: these risks exist OUTSIDE the known-unknown space`, 'info', 6500);
+  await addThink(`[ EVAL ] Top unanticipated scenario: "${risks[0].name}"`, 'warn', 7100);
 
   const topProb = risks[0].prob;
   const composite = clamp(Math.round(risks.reduce((s,r)=>(s+(r.prob/100)*(r.impact/100)*100),0)/risks.length + blackSwanBonus),0,100);
-  const maxExposure = clamp(parseInt(beds)*rand(1500,4000)*(risks[0].impact/50)*infraMod, 500000, 500000000);
+  const maxExposure = clamp(parseInt(beds)*rand(2000,6000)*(risks[0].impact/50)*infraMod, 500000, 800000000);
 
-  await addThink(`[ EVAL ] Composite unknown risk score: ${composite}/100`, composite>60?'warn':'ok', 7500);
-  await addThink(`[ EVAL ] Estimated max financial exposure: ${fmt$M(maxExposure)}`, 'warn', 8100);
-  await addThink(`[ ARIA ] ✓ Risk register complete. ${risks.filter(r=>r.sev==='critical').length} CRITICAL · ${risks.filter(r=>r.sev==='high').length} HIGH · ${risks.filter(r=>r.sev==='medium').length} MEDIUM scenarios identified.`, 'ok', 8700);
+  await addThink(`[ EVAL ] Unknown risk composite score: ${composite}/100 — these risks have no existing mitigation`, composite>60?'warn':'ok', 7700);
+  await addThink(`[ EVAL ] Estimated maximum unanticipated exposure: ${fmt$M(maxExposure)}`, 'warn', 8300);
+  await addThink(`[ ARIA ] ✓ ${risks.length} unknown scenarios registered. ${risks.filter(r=>r.sev==='critical').length} CRITICAL · ${risks.filter(r=>r.sev==='high').length} HIGH without any existing playbook.`, 'ok', 9000);
 
   setBadge('badge3','EVAL: COMPLETE','low');
 
-  // KPIs
   setTimeout(()=>{
     animNum('kpiScore', composite);
     document.getElementById('kpiScenarios').textContent = risks.length;
     document.getElementById('kpiTopProb').textContent = topProb+'%';
     document.getElementById('kpiExposure').textContent = fmt$M(maxExposure);
 
-    // Update title
-    document.getElementById('pageTitle').innerHTML = `${hospName} — Unknown Risk Register <small>${risks.length} scenarios · Composite score ${composite}/100</small>`;
+    document.getElementById('pageTitle').innerHTML = `${hospName} — Unknown Risk Register <small>${risks.length} unanticipatable scenarios · Composite score ${composite}/100</small>`;
 
-    // Charts
     updateCatChart(risks);
     updateMatrixChart(risks);
     renderWorldSignals(region, climate, geopolitical, techfail, infraAge, medAge, poverty);
     renderRiskRegister(risks, currentFilter);
+    renderDeptGrid(computeDeptImpacts(risks[0]), CAT_DEPT_CASCADE[risks[0].cat] || CAT_DEPT_CASCADE['unknown']);
+    renderCascade(risks[0]);
+    renderAdaptiveRecs(risks, beds, infraAge);
 
-    // Status
     statusDot.style.background = composite>60?'var(--danger)':'var(--warn)';
     statusDot.style.boxShadow = `0 0 8px ${composite>60?'var(--danger)':'var(--warn)'}`;
-    statusLabel.textContent = composite>60?'High Risk Detected':'Risk Analysis Complete';
+    statusLabel.textContent = composite>60?'Unknown Risk Detected':'Imagination Complete';
     statusLabel.style.color = composite>60?'var(--danger)':'var(--warn)';
 
     btn.classList.remove('running');
     btn.textContent = '🔮 Re-run ARIA Agent';
     btn.disabled = false;
-  }, 9200);
+  }, 9600);
+}
+
+function computeDeptImpacts(topRisk){
+  if (!topRisk) return null;
+  const cfg = CAT_DEPT_CASCADE[topRisk.cat] || CAT_DEPT_CASCADE['unknown'];
+  const impacts = {};
+  DEPARTMENTS_ARIA.forEach(d => {
+    if (cfg.primary.includes(d.id)) impacts[d.id] = clamp(Math.round(topRisk.impact * rand(0.85, 1.0)), 0, 100);
+    else if (cfg.cascade.includes(d.id)) impacts[d.id] = clamp(Math.round(topRisk.impact * rand(0.4, 0.75)), 0, 100);
+    else impacts[d.id] = clamp(Math.round(topRisk.impact * rand(0.1, 0.3)), 0, 100);
+  });
+  return impacts;
+}
+
+function renderCascade(risk){
+  if (!risk) return;
+  const cfg = CAT_DEPT_CASCADE[risk.cat] || CAT_DEPT_CASCADE['unknown'];
+  const chain = document.getElementById('cascadeChain');
+  chain.innerHTML = '';
+
+  cfg.primary.forEach(id => {
+    const d = DEPARTMENTS_ARIA.find(x=>x.id===id);
+    const el = document.createElement('span');
+    el.className = 'cascade-tag trigger';
+    el.textContent = `⚡ ${d ? d.name : id}`;
+    chain.appendChild(el);
+  });
+  const arrow = document.createElement('span');
+  arrow.className = 'cascade-tag';
+  arrow.textContent = '→ unknown pathway →';
+  chain.appendChild(arrow);
+  cfg.cascade.forEach(id => {
+    const d = DEPARTMENTS_ARIA.find(x=>x.id===id);
+    const el = document.createElement('span');
+    el.className = 'cascade-tag';
+    el.style.background = '#1a1030';
+    el.style.color = '#a78bfa';
+    el.textContent = d ? d.name : id;
+    chain.appendChild(el);
+  });
+
+  document.getElementById('cascadeNote').textContent = cfg.note;
+  document.getElementById('cascadeArea').style.display = 'block';
+  document.getElementById('deptTitle').textContent = `🏥 Department Vulnerability Network — "${risk.name}"`;
 }
 
 function setBadge(id, text, state){
@@ -664,26 +831,26 @@ function updateMatrixChart(risks){
 
 function renderWorldSignals(region, climate, geopolitical, techfail, infraAge, medAge, poverty){
   const climateSignals = {
-    coastal_se:    [['Storm Surge Trend',82],['Sea Level Rise Rate',67],['Heat Days (annual)',55],['Flood Frequency',74]],
-    midwest_urban: [['Urban Heat Island',64],['Extreme Precip Events',58],['Winter Storm Severity',45],['Air Quality Index Avg',39]],
-    rural_appalachia:[['Flood Risk',61],['Freeze-Thaw Cycles',55],['Wildfire Risk',22],['Drought Frequency',38]],
-    desert_sw:     [['Extreme Heat Days',88],['Drought Severity',79],['Wildfire Smoke Days',65],['Aquifer Stress',72]],
-    western_fire:  [['Wildfire Risk Index',91],['Smoke Days/yr',78],['Drought Severity',83],['Heat Wave Frequency',66]],
-    northern_plains:[['Blizzard Frequency',74],['Extreme Cold Days',68],['Ice Storm Risk',61],['Growing Season Shift',42]],
-    northeast_urban:[['Urban Heat Island',58],['Extreme Precip',62],['Flooding Risk',55],['Air Quality',48]],
-    gulf_coast:    [['Hurricane Intensity',84],['Storm Surge Risk',79],['Flooding Days/yr',71],['Heat & Humidity Index',67]],
+    coastal_se:    [['Novel Storm Surge Patterns',78],['Sea Level Acceleration',72],['Marine Ecosystem Collapse Risk',65],['Unknown Flood Pathogen Vectors',58]],
+    midwest_urban: [['Urban Heat Emergence',62],['Extreme Precip Variability',55],['Unknown Infrastructure Stress',48],['Air Quality Volatility',44]],
+    rural_appalachia:[['Unknown Flood Regimes',58],['Infrastructure Age Stress',62],['Atypical Climate Stressors',45],['Ecosystem Disruption',38]],
+    desert_sw:     [['Beyond-Historical Heat',91],['Aquifer Depletion Acceleration',82],['Unknown HVAC Failure Modes',72],['Novel Drought Cascades',68]],
+    western_fire:  [['Fire Behavior Outside Models',88],['Smoke Toxicology Unknowns',75],['Novel Evacuation Failure Modes',82],['Unknown PTSD Surge Timing',65]],
+    northern_plains:[['Extreme Cold Unknowns',78],['Infrastructure Age + Climate',72],['Unknown Ice Pattern Changes',65],['Novel Demand Spikes',55]],
+    northeast_urban:[['Urban Heat + Social Isolation',64],['Aging Infrastructure Stress',68],['Unknown Flooding Cascades',55],['Novel Comorbidity Presentations',52]],
+    gulf_coast:    [['Unknown Storm Compound Events',88],['Novel Chemical Release Patterns',74],['Accelerated CKD from Heat',68],['Unknown Port-Entry Pathogen Risk',62]],
   };
   const demoSignals = [
-    ['Median Age Stress', clamp(Math.round((parseInt(medAge)-30)*1.5+20),5,95)],
-    ['Poverty Concentration', clamp(Math.round(parseInt(poverty)*2.2),5,95)],
-    ['Uninsured Delay Risk', clamp(Math.round(parseInt(document.getElementById('uninsured').value)*2.8),5,95)],
-    ['Social Isolation Index', clamp(Math.round(rand(30,70)),5,95)],
+    ['Unknown Age-Acuity Interaction', clamp(Math.round((parseInt(medAge)-30)*1.5+25),5,95)],
+    ['Invisible Poverty Health Lag', clamp(Math.round(parseInt(poverty)*2.4),5,95)],
+    ['Uninsured Delay Cascade Risk', clamp(Math.round(parseInt(document.getElementById('uninsured').value)*2.9),5,95)],
+    ['Social Isolation Emergence Risk', clamp(Math.round(rand(40,80)),5,95)],
   ];
   const techSignals = [
-    ['EHR Dependency Risk', clamp(Math.round(60+rand(-15,15)),5,95)],
-    ['Infrastructure Age Risk', clamp(Math.round((parseInt(infraAge)/80)*100),5,95)],
-    ['Cyber Threat Exposure', clamp(Math.round(55+rand(-10,20)),5,95)],
-    ['Grid Reliability Score', clamp(Math.round(100-(rand(20,55))),5,95)],
+    ['AI System Failure Risk (clinical)', clamp(Math.round(55+rand(-10,20)),5,95)],
+    ['Infrastructure Age Failure Modes', clamp(Math.round((parseInt(infraAge)/80)*100),5,95)],
+    ['Unknown Cyber Attack Vectors', clamp(Math.round(60+rand(-10,20)),5,95)],
+    ['GPS/Satellite Dependency Risk', clamp(Math.round(rand(30,65)),5,95)],
   ];
 
   renderSignals('climateSignals', (climateSignals[region]||climateSignals['midwest_urban']), climate);
@@ -728,12 +895,13 @@ function renderRiskRegister(risks, filter){
         <div class="risk-name">${r.name}</div>
         <div class="risk-tags">
           <span class="rtag ${r.cat}">${r.cat}</span>
+          <span class="rtag unknown">unknown-unknown</span>
           <span class="rtag">P×I: ${composite}</span>
         </div>
       </div>
       <div class="risk-prob">
         <svg class="prob-ring" viewBox="0 0 44 44">
-          <circle cx="22" cy="22" r="17" fill="none" stroke="#1e2535" stroke-width="4"/>
+          <circle cx="22" cy="22" r="17" fill="none" stroke="#1e2a40" stroke-width="4"/>
           <circle cx="22" cy="22" r="17" fill="none" stroke="${CAT_COLORS[r.cat]||'#64748b'}" stroke-width="4"
             stroke-dasharray="${(r.prob/100)*106.8} 106.8" stroke-linecap="round"
             transform="rotate(-90 22 22)"/>
@@ -743,7 +911,7 @@ function renderRiskRegister(risks, filter){
       <div class="risk-impact"><strong style="color:${r.impact>=75?'var(--danger)':r.impact>=50?'var(--warn)':'var(--green)'}">Impact ${r.impact}</strong><br/>severity</div>
       <span class="risk-sev ${sevPill}">${r.sev.toUpperCase()}</span>
     `;
-    item.onclick = ()=>openModal(r, rank);
+    item.onclick = ()=>openRiskModal(r, rank);
     list.appendChild(item);
   });
 }
@@ -755,27 +923,169 @@ function filterReg(f, btn){
   renderRiskRegister(allRisks, f);
 }
 
-function openModal(r, rank){
+// Resilience investment framework for unknown unknowns
+// Key insight: you can't mitigate the unknown directly — you invest in resilience, detection, and adaptive capacity
+function getResilienceInvestments(cat, beds, impact){
+  const bedScaler = parseInt(beds) / 100;
+  const investments = {
+    detection: [
+      { name:'Anomaly detection + clinical surveillance AI', cost: 0.3 * bedScaler * 1e6, annualized_risk_reduction: 0.25, timeframe:'6–12 months', desc:'Automated detection of unusual patterns across all clinical systems — the first warning of unknowns is always anomalous data.' },
+      { name:'Unknown toxin / pathogen rapid identification lab', cost: 0.5 * bedScaler * 1e6, annualized_risk_reduction: 0.20, timeframe:'12–18 months', desc:'Metagenomic sequencing and broad-panel toxicology capable of characterizing entirely novel threats within 6 hours.' },
+    ],
+    resilience: [
+      { name:'Hardened physical redundancy (power, water, gas, comms)', cost: 1.2 * bedScaler * 1e6, annualized_risk_reduction: 0.35, timeframe:'12–24 months', desc:'Unknown failures propagate through shared infrastructure. N+2 redundancy across all critical utilities prevents any single unknown failure from cascading.' },
+      { name:'Modular expansion + flex patient care capacity', cost: 0.8 * bedScaler * 1e6, annualized_risk_reduction: 0.28, timeframe:'18–36 months', desc:'Unknown surge scenarios require surge capacity. Modular patient care spaces deploy in 72 hours regardless of the cause of the surge.' },
+    ],
+    adaptive: [
+      { name:'Cross-trained floating staff pool + scenario-agnostic protocols', cost: 0.2 * bedScaler * 1e6, annualized_risk_reduction: 0.30, timeframe:'Ongoing', desc:'Protocols designed for unknown unknowns focus on decision-making principles rather than specific scenarios. Cross-trained staff execute these principles adaptively.' },
+      { name:'Hospital command center with real-time data fusion', cost: 0.4 * bedScaler * 1e6, annualized_risk_reduction: 0.22, timeframe:'6–12 months', desc:'Unknown events require rapid information integration. A command center reduces decision latency from hours to minutes when the situation is novel.' },
+    ],
+  };
+  return investments;
+}
+
+function renderCBA(risk, beds){
+  if (!risk || !beds) return;
+  document.getElementById('cbaTitle').textContent = risk.name;
+
+  const lossAmt = clamp(parseInt(beds) * rand(2000, 6000) * (risk.impact/50), 500000, 500000000);
+  const investments = getResilienceInvestments(risk.cat, beds, risk.impact);
+
+  let html = `<div class="cba-grid">`;
+
+  // Unmitigated cost breakdown
+  html += `<div class="cba-card"><h4>📉 Unanticipated Scenario — Estimated Exposure</h4>`;
+  const categories = [
+    { label:'Operational downtime (no protocol to accelerate recovery)', pct:0.40 },
+    { label:'Emergency improvised response cost premium', pct:0.25 },
+    { label:'Unknown complication treatment costs', pct:0.15 },
+    { label:'Reputational / patient diversion losses', pct:0.12 },
+    { label:'Regulatory / post-incident review costs', pct:0.08 },
+  ];
+  categories.forEach(c => {
+    html += `<div class="cba-row"><span class="label">${c.label}</span><span class="val red">${fmt$M(lossAmt * c.pct)}</span></div>`;
+  });
+  html += `<div class="cba-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px"><span class="label" style="font-weight:700;color:var(--text)">Total Unknown Exposure</span><span class="val red" style="font-size:15px">${fmt$M(lossAmt)}</span></div>`;
+  html += `<div style="margin-top:8px;font-size:11px;color:var(--warn);line-height:1.5">⚠ Unknown unknowns cannot be precisely estimated. This represents a plausible floor for a facility of this size — actual exposure could be significantly higher for truly novel events.</div>`;
+  html += `</div>`;
+
+  // Resilience investment strategies
+  html += `<div class="cba-card"><h4>🛡️ Resilience Investment Strategy (not mitigation — preparation)</h4>`;
+  html += `<div style="font-size:11px;color:var(--accent2);margin-bottom:8px;line-height:1.5">Unknown unknowns cannot be mitigated directly. Investment in detection speed, physical resilience, and adaptive capacity reduces impact across any unknown scenario — not just this one.</div>`;
+
+  const allInvest = [...investments.detection, ...investments.resilience, ...investments.adaptive];
+  let totalCost = 0, totalReduction = 0;
+  allInvest.forEach(inv => {
+    totalCost += inv.cost;
+    totalReduction = 1 - (1 - totalReduction) * (1 - inv.annualized_risk_reduction);
+    const saving = lossAmt * inv.annualized_risk_reduction;
+    html += `<div class="cba-row"><span class="label">${inv.name}</span><span></span></div>`;
+    html += `<div class="cba-row" style="padding-left:10px;border-bottom:none"><span class="label">Investment</span><span class="val yellow">${fmt$M(inv.cost)}</span></div>`;
+    html += `<div class="cba-row" style="padding-left:10px"><span class="label">Risk reduction value</span><span class="val green">${fmt$M(saving)}/yr</span></div>`;
+  });
+  html += `</div>`;
+  html += `</div>`;
+
+  // Visual bars
+  html += `<div class="cba-compare-chart">`;
+  ['detection','resilience','adaptive'].forEach(type => {
+    const label = type === 'detection' ? '🔍 Detection Investment' : type === 'resilience' ? '🏗️ Physical Resilience Investment' : '🔄 Adaptive Capacity Investment';
+    const typeInvests = investments[type];
+    typeInvests.forEach(inv => {
+      const costPct = Math.min(100, Math.round(inv.cost / lossAmt * 100));
+      const savingPct = Math.min(100, Math.round(inv.annualized_risk_reduction * 100));
+      html += `<div class="cba-bar-label">${inv.name}</div>`;
+      html += `<div class="cba-bar-track"><div class="cba-bar-fill" style="width:0%;background:var(--accent)" data-w="${Math.min(costPct,100)}">${fmt$M(inv.cost)} investment</div></div>`;
+      html += `<div class="cba-bar-track"><div class="cba-bar-fill" style="width:0%;background:var(--green)" data-w="${savingPct}">${Math.round(inv.annualized_risk_reduction*100)}% scenario risk reduction value</div></div>`;
+      html += `<div style="margin-bottom:8px"></div>`;
+    });
+  });
+  html += `</div>`;
+
+  const totalRoi = Math.round((lossAmt * totalReduction - totalCost) / totalCost * 100);
+  html += `<div class="cba-verdict"><strong>Resilience investment portfolio ROI:</strong> ${fmt$M(totalCost)} total investment reduces unknown-scenario exposure by an estimated ${Math.round(totalReduction*100)}% across this and similar unanticipated events. Estimated net value: ${fmt$M(lossAmt * totalReduction - totalCost)} (${totalRoi}% ROI). <strong>Key principle:</strong> These investments create value against any unknown event, not just this one scenario.</div>`;
+  html += `<div class="unknown-caveat">⚠ Unlike known-risk mitigation, the ROI of resilience investment against unknown unknowns cannot be precisely calculated — the probability distribution of unanticipatable events is, by definition, unknown. These estimates represent the lower bound of resilience value across all plausible unknown scenarios.</div>`;
+
+  document.getElementById('cbaContent').innerHTML = html;
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.cba-bar-fill').forEach(b => { b.style.width = b.dataset.w + '%'; });
+  });
+}
+
+function renderAdaptiveRecs(risks, beds, infraAge){
+  const list = document.getElementById('recList');
+  list.innerHTML = '';
+
+  const recs = [
+    { type:'detection', title:'Deploy hospital-wide anomaly detection dashboard', priority:'high', cost:'$150K–400K', saving:'30+ minutes earlier detection per novel event', desc:'The first indicator of an unknown unknown is always an anomaly in existing data. Automated cross-system anomaly detection creates the earliest possible warning regardless of the nature of the unknown event.', typeName:'Detection' },
+    { type:'resilience', title:'Achieve N+2 redundancy on all critical utilities', priority:'high', cost:'$800K–2M (phased)', saving:'Prevents cascade from any single unknown failure', desc:'Unknown failures propagate through shared infrastructure. Building N+2 redundancy across power, water, gas, and communications means no single unknown failure can cascade into a clinical crisis.', typeName:'Physical Resilience' },
+    { type:'adaptive', title:'Create scenario-agnostic emergency decision protocol', priority:'high', cost:'$20K–50K to develop', saving:'60% faster command decisions for novel events', desc:'Standard hospital protocols fail during unknowns because they assume a known situation type. A scenario-agnostic protocol defines decision principles rather than steps — what criteria to use, not what to do — enabling adaptive response.', typeName:'Adaptive Capacity' },
+    { type:'detection', title:'Establish "unknown etiology" clinical cluster detection trigger', priority:'high', cost:'$30K–80K', saving:'72+ hours earlier outbreak identification', desc:'Most unknown clinical threats first appear as clusters of unusual presentations. A formal "unknown etiology" cluster trigger — 3+ similar unusual cases in 72 hours → escalate — creates a protocol hook for the unanticipatable.', typeName:'Detection' },
+    { type:'resilience', title:'Build cross-functional surge capacity with unknown-use designation', priority:'med', cost:'$400K–1.2M', saving:'30–50% reduction in surge response improvisation', desc:'Physical surge capacity — additional beds, storage, generator capacity — creates resilience against unknown surges regardless of their cause. It is the physical equivalent of a scenario-agnostic protocol.', typeName:'Physical Resilience' },
+    { type:'adaptive', title:'Cross-train 20% of clinical staff in adjacent care roles', priority:'med', cost:'$100K–250K/yr', saving:'Prevents staffing collapse during novel scenarios', desc:'Unknown events disrupt normal staffing patterns. Cross-trained staff can fill gaps that standard credentialing does not cover, enabling adaptive coverage when the scenario is novel.', typeName:'Adaptive Capacity' },
+    { type:'resilience', title:'Implement comprehensive supply chain country-of-origin mapping', priority:'med', cost:'$20K–60K audit', saving:'Prevents invisible correlated shortages', desc:'Unknown supply disruptions arise from correlated sourcing that hospitals do not track. Mapping every critical supply to country and factory of origin reveals invisible vulnerabilities before they become unknown crises.', typeName:'Physical Resilience' },
+    { type:'detection', title:'Establish direct connection to CDC, FDA, and state emergency data feeds', priority:'med', cost:'$10K integration + annual maintenance', saving:'Days earlier awareness of emerging external threats', desc:'Unknown threats often become known at the system level before local manifestation. Direct connections to federal and state surveillance systems provide the earliest possible signal for externally-originating unknowns.', typeName:'Detection' },
+    { type:'adaptive', title:'Annual full-scale unknown scenario exercise ("tabletop without a scenario")', priority:'med', cost:'$20K–40K/exercise', saving:'Builds adaptive response muscle memory', desc:'Standard exercises test known scenarios. An "unknown" exercise presents a deliberately incomplete situation and evaluates how the team builds understanding and makes decisions under true uncertainty.', typeName:'Adaptive Capacity' },
+  ];
+
+  recs.forEach(r => {
+    const typeClass = r.type === 'detection' ? 'rec-detection' : r.type === 'resilience' ? 'rec-resilience' : 'rec-adaptive';
+    const badgeClass = r.type === 'detection' ? 'detection' : r.type === 'resilience' ? 'resilience' : 'adaptive';
+    const priorityClass = r.priority === 'high' ? 'priority-high' : 'priority-med';
+    const item = document.createElement('div');
+    item.className = `rec-item ${typeClass}`;
+    item.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <span class="rec-type-badge ${badgeClass}">${r.typeName}</span>
+      </div>
+      <div class="rec-title">${r.title}</div>
+      <div class="rec-meta">
+        <span class="${priorityClass}">Priority: <strong>${r.priority === 'high' ? '🔴 High' : '🟡 Medium'}</strong></span>
+        <span>Investment: <strong>${r.cost}</strong></span>
+        <span>Value: <strong>${r.saving}</strong></span>
+      </div>
+      <div class="rec-desc">${r.desc}</div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function openRiskModal(r, rank){
   const composite = Math.round((r.prob/100)*(r.impact/100)*100);
-  const financial = fmt$M(clamp(parseInt(document.getElementById('beds').value)*rand(800,3000)*(r.impact/50), 100000, 200000000));
+  const beds = document.getElementById('beds').value;
+  const financial = fmt$M(clamp(parseInt(beds)*rand(1500,5000)*(r.impact/50), 100000, 500000000));
+
+  // Also trigger CBA
+  renderCBA(r, beds);
+  // Update dept grid for this scenario
+  renderDeptGrid(computeDeptImpacts(r), CAT_DEPT_CASCADE[r.cat] || CAT_DEPT_CASCADE['unknown']);
+  renderCascade(r);
+
   document.getElementById('modalContent').innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
       <span class="rtag ${r.cat}" style="font-size:11px">${r.cat}</span>
+      <span class="rtag unknown" style="font-size:11px">unknown-unknown</span>
       <span class="risk-sev sev-pill-${r.sev}" style="font-size:11px">${r.sev.toUpperCase()}</span>
     </div>
     <h2>#${rank} — ${r.name}</h2>
+    <div style="margin:8px 0;padding:8px;background:rgba(167,139,250,0.08);border-radius:6px;font-size:12px;color:var(--accent2);border-left:2px solid var(--accent)">
+      ⚠ This scenario is classified as an <strong>unknown unknown</strong> — it has no existing hospital response protocol and cannot be fully anticipated with current context or data.
+    </div>
     <div class="modal-row">
-      <div class="modal-stat"><div class="ms-val">${r.prob}%</div><div class="ms-label">Probability</div></div>
+      <div class="modal-stat"><div class="ms-val">${r.prob}%</div><div class="ms-label">Imagined Probability</div></div>
       <div class="modal-stat"><div class="ms-val">${r.impact}</div><div class="ms-label">Impact Score</div></div>
-      <div class="modal-stat"><div class="ms-val">${financial}</div><div class="ms-label">Est. Exposure</div></div>
+      <div class="modal-stat"><div class="ms-val">${financial}</div><div class="ms-label">Est. Max Exposure</div></div>
     </div>
     <div class="modal-section">
       <h4>Scenario Description</h4>
       <p>${r.desc}</p>
     </div>
     <div class="modal-section">
-      <h4>Recommended Preparedness Actions</h4>
+      <h4>Adaptive Preparedness Actions (Principles, Not Protocols)</h4>
       <div class="action-list">${r.actions.map(a=>`<div class="action-item">${a}</div>`).join('')}</div>
+    </div>
+    <div class="unknowable-note">
+      <strong>⚠ Why standard mitigation doesn't apply:</strong> This scenario exists outside the known-unknown space. Standard mitigation assumes you know what you're preparing for. Preparedness here means building detection, resilience, and adaptive capacity — not writing a specific protocol for a specific event that, by definition, has no historical analog.
     </div>
   `;
   document.getElementById('modalOverlay').classList.add('open');
