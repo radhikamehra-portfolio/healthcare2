@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>ARIA — Unanticipatable Risk Intelligence Agent</title>
+<title>AGNOSIA — Unanticipatable Risk Intelligence Engine</title>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -230,6 +230,36 @@
   .modal-cba-row { display:flex; justify-content:space-between; font-size:12px; padding:4px 0; border-bottom:1px solid var(--border); }
   .modal-cba-row:last-child { border-bottom:none; }
 
+  /* ── Local Context Panel ── */
+  .context-panel { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; }
+  .context-panel h3 { font-size:12px; font-weight:600; color:var(--muted); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+  .context-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .context-stat { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
+  .context-stat .cs-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  .context-stat .cs-val { font-size:14px; font-weight:700; color:var(--text); margin-top:2px; }
+  .context-stat .cs-sub { font-size:10px; color:var(--muted); margin-top:1px; }
+  .context-notes { margin-top:10px; padding:10px 12px; background:var(--surface); border-radius:8px; border:1px solid var(--border); font-size:12px; color:var(--muted); line-height:1.6; }
+  .context-notes strong { color:var(--accent2); }
+
+  /* ── Unknown Cascade Story ── */
+  .cascade-story { display:flex; flex-direction:column; gap:0; }
+  .cascade-step { display:flex; gap:14px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--border); }
+  .cascade-step:last-child { border-bottom:none; }
+  .step-num { width:24px; height:24px; border-radius:50%; background:var(--border); color:var(--muted); font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+  .step-num.crit { background:rgba(239,68,68,0.2); color:var(--danger); }
+  .step-num.high { background:rgba(245,158,11,0.2); color:var(--warn); }
+  .step-num.med { background:rgba(167,139,250,0.2); color:var(--accent2); }
+  .step-body { flex:1; }
+  .step-dept { font-size:12px; font-weight:700; color:var(--text); display:flex; align-items:center; gap:6px; margin-bottom:3px; }
+  .step-impact-pill { font-size:10px; padding:1px 8px; border-radius:10px; font-weight:600; }
+  .step-desc { font-size:12px; color:var(--muted); line-height:1.55; }
+  .step-consequence { font-size:11px; color:var(--warn); margin-top:3px; }
+  .dept-score-bar { display:flex; align-items:center; gap:8px; margin-top:6px; }
+  .dept-score-track { flex:1; height:5px; background:var(--border); border-radius:3px; overflow:hidden; max-width:120px; }
+  .dept-score-fill { height:100%; border-radius:3px; }
+  .dept-score-label { font-size:10px; font-weight:700; min-width:32px; }
+  .dept-subtitle { font-size:11px; color:var(--muted); margin-bottom:14px; }
+
   ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 </style>
 </head>
@@ -239,10 +269,10 @@
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-left">
-      <div class="logo-mark">AI</div>
+      <div class="logo-mark">AG</div>
       <div>
-        <div class="logo-text">ARIA <span>Unknown Risk Intelligence</span></div>
-        <div class="logo-sub">Unanticipatable Risk Agent · Imagination-Based Scenario Engine</div>
+        <div class="logo-text">AGNOSIA <span>Unknown Risk Engine</span></div>
+        <div class="logo-sub">Greek: ἀγνωσία — "not knowing" · Imagination-Based Unknown Risk Engine</div>
       </div>
     </div>
     <div class="topbar-right">
@@ -255,6 +285,40 @@
   <div class="content">
     <!-- SIDEBAR -->
     <aside class="sidebar">
+
+      <div class="s-section">
+        <div class="s-label">Local Context</div>
+        <div class="field">
+          <label>City / Locale Name</label>
+          <input type="text" id="cityName" value="New Orleans, LA" style="background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 8px;font-size:12px;outline:none;width:100%"/>
+        </div>
+        <div class="field">
+          <label>Population (metro area)</label>
+          <select id="popSize" style="background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 8px;font-size:12px;outline:none;width:100%">
+            <option value="small">Under 50,000</option>
+            <option value="mid">50K–250K</option>
+            <option value="large" selected>250K–1M</option>
+            <option value="metro">1M+</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Dominant Local Industry</label>
+          <select id="localIndustry" style="background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 8px;font-size:12px;outline:none;width:100%">
+            <option value="agriculture">Agriculture / Farming</option>
+            <option value="manufacturing">Manufacturing / Industrial</option>
+            <option value="energy">Energy / Oil &amp; Gas</option>
+            <option value="tech">Technology / Office</option>
+            <option value="tourism" selected>Tourism / Hospitality</option>
+            <option value="government">Government / Military</option>
+            <option value="healthcare">Healthcare Hub</option>
+            <option value="mixed">Mixed / Diverse</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Unique Local Context Notes</label>
+          <textarea id="localNotes" rows="2" placeholder="e.g. Port city, legacy chemical plants, low-lying coastal area, aging water mains…" style="background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 8px;font-size:11px;outline:none;width:100%;resize:vertical;line-height:1.5;color:#64748b"></textarea>
+        </div>
+      </div>
 
       <div class="s-section">
         <div class="s-label">Facility Context</div>
@@ -342,11 +406,11 @@
           </div>
         </div>
         <div style="margin-top:6px;font-size:11px;color:var(--accent2);line-height:1.6;padding:8px;background:rgba(167,139,250,0.07);border-radius:6px;border-left:2px solid var(--accent)">
-          ARIA operates in <strong>unanticipatable space</strong> — generating scenarios that have no established response protocol, no historical precedent, and no current risk management framework.
+          AGNOSIA operates in <strong>unanticipatable space</strong> — generating scenarios that have no established response protocol, no historical precedent, and no current risk management framework.
         </div>
       </div>
 
-      <button class="btn-aria" id="ariaBtn" onclick="runARIA()">🔮 Activate ARIA Agent</button>
+      <button class="btn-aria" id="ariaBtn" onclick="runARIA()">🔮 Activate AGNOSIA Engine</button>
     </aside>
 
     <!-- MAIN PANEL -->
@@ -355,8 +419,8 @@
       <!-- Header -->
       <div class="main-header">
         <div>
-          <h1 id="pageTitle">Unanticipatable Risk Intelligence Dashboard
-            <small>Configure context and activate ARIA to generate unknown-unknown scenarios</small>
+          <h1 id="pageTitle">AGNOSIA — Unknown Risk Intelligence Dashboard
+            <small>Configure local context and activate the engine to generate unknown-unknown scenarios</small>
           </h1>
         </div>
         <div class="state-badges">
@@ -390,12 +454,12 @@
         </div>
       </div>
 
-      <!-- ARIA thinking stream -->
+      <!-- AGNOSIA imagination stream -->
       <div class="thinking-card">
-        <h3><span style="color:var(--accent2)">◈</span> ARIA Imagination Stream — Unknown Unknown Generation</h3>
+        <h3><span style="color:var(--accent2)">◈</span> AGNOSIA Imagination Stream — Unknown Unknown Generation</h3>
         <div class="thinking-stream" id="thinkStream">
-          <div class="tline info">[ ARIA ] Waiting for activation. Configure facility context and click "Activate ARIA Agent".</div>
-          <div class="tline unk">[ MODE ] This agent generates scenarios outside existing context — the unknown unknowns that standard risk registers cannot capture.</div>
+          <div class="tline info">[ AGNOSIA ] Waiting for activation. Configure local context and facility details, then activate the engine.</div>
+          <div class="tline unk">[ MODE ] This engine generates scenarios outside existing context — the unknown unknowns that standard risk registers cannot capture.</div>
         </div>
       </div>
 
@@ -427,13 +491,19 @@
         </div>
       </div>
 
-      <!-- Department Dependency Network -->
+      <!-- Local Context Panel -->
+      <div class="context-panel" id="contextPanel" style="display:none">
+        <h3>📍 Facility &amp; Community Profile — <span id="contextCityName" style="color:var(--accent2)"></span></h3>
+        <div class="context-grid" id="contextGrid"></div>
+        <div class="context-notes" id="contextNotes"></div>
+      </div>
+
+      <!-- Unknown Failure Cascade Story -->
       <div class="dept-section">
-        <h3 id="deptTitle">🏥 Department Vulnerability Network — Unknown Failure Mode Propagation</h3>
-        <div class="dept-grid" id="deptGrid"></div>
-        <div id="cascadeArea" style="display:none">
-          <div class="cascade-chain" id="cascadeChain"></div>
-          <div class="unknown-cascade-note" id="cascadeNote"></div>
+        <h3 id="deptTitle">🏥 Unknown Failure Cascade — How This Scenario Propagates</h3>
+        <div class="dept-subtitle" id="deptSubtitle">Activate AGNOSIA to see how the top unknown scenario propagates across departments</div>
+        <div class="cascade-story" id="cascadeStory">
+          <div style="text-align:center;color:var(--muted);padding:20px 0;font-size:12px">Activate AGNOSIA to generate the cascade story</div>
         </div>
       </div>
 
@@ -449,7 +519,7 @@
           </div>
         </h3>
         <div class="risk-list" id="riskList">
-          <div style="text-align:center;color:var(--muted);padding:30px 0;font-size:13px">Activate ARIA to generate unknown risk scenarios</div>
+          <div style="text-align:center;color:var(--muted);padding:30px 0;font-size:13px">Activate AGNOSIA to generate unknown risk scenarios</div>
         </div>
       </div>
 
@@ -465,7 +535,7 @@
       <div class="rec-section">
         <h3>🛡️ Adaptive Resilience Recommendations — Preparing for the Unanticipatable</h3>
         <div class="rec-list" id="recList">
-          <div style="text-align:center;color:var(--muted);padding:20px 0;font-size:13px">Activate ARIA to generate adaptive resilience recommendations</div>
+          <div style="text-align:center;color:var(--muted);padding:20px 0;font-size:13px">Activate AGNOSIA to generate adaptive resilience recommendations</div>
         </div>
       </div>
 
@@ -575,7 +645,6 @@ function initCharts(){
   matrixChart = echarts.init(document.getElementById('matrixChart'),'dark');
   catChart.setOption({ backgroundColor:'transparent', series:[{type:'pie',data:[],radius:['35%','70%'],label:{show:false}}], legend:{show:false} });
   matrixChart.setOption({ backgroundColor:'transparent', xAxis:{type:'value',min:0,max:100,name:'Probability (%)',nameTextStyle:{color:'#64748b',fontSize:10},axisLabel:{color:'#64748b',fontSize:10},splitLine:{lineStyle:{color:'#1e2a40'}}}, yAxis:{type:'value',min:0,max:100,name:'Impact',nameTextStyle:{color:'#64748b',fontSize:10},axisLabel:{color:'#64748b',fontSize:10},splitLine:{lineStyle:{color:'#1e2a40'}}}, grid:{left:48,right:16,top:16,bottom:40}, series:[{type:'scatter',data:[],symbolSize:10}], tooltip:{trigger:'item',formatter:p=>p.data[2]} });
-  renderDeptGrid(null, null);
 }
 
 const CAT_COLORS = { demographic:'#60a5fa', climate:'#4ade80', cyber:'#c084fc', supply:'#fbbf24', behavioral:'#f87171', technology:'#22d3ee', compound:'#a78bfa', emergent:'#e879f9', unknown:'#f43f5e' };
@@ -589,22 +658,6 @@ function getSeverity(prob,impact){
   return 'low';
 }
 
-function renderDeptGrid(impacts, cascade_config){
-  const grid = document.getElementById('deptGrid');
-  grid.innerHTML = '';
-  DEPARTMENTS_ARIA.forEach(d => {
-    const score = impacts ? (impacts[d.id] || 0) : 0;
-    const isPrimary = cascade_config ? cascade_config.primary.includes(d.id) : false;
-    const isCascade = cascade_config ? cascade_config.cascade.includes(d.id) : false;
-    const cls = score >= 80 ? 'impact-crit' : score >= 60 ? 'impact-high' : score >= 35 ? 'impact-med' : score > 0 ? 'impact-low' : 'impact-none';
-    const scoreColor = score >= 80 ? '#ef4444' : score >= 60 ? '#f59e0b' : score >= 35 ? '#a78bfa' : score > 0 ? '#10b981' : '#64748b';
-    const unknownMark = isPrimary ? '⚠ TRIGGER' : isCascade && score > 30 ? '→ cascade' : '';
-    const node = document.createElement('div');
-    node.className = `dept-node ${cls}`;
-    node.innerHTML = `<div class="dept-icon">${d.icon}</div><div class="dept-name">${d.name}</div><div class="dept-score" style="color:${scoreColor}">${impacts ? score+'/100' : '—'}</div>${unknownMark ? `<div class="unknown-marker">${unknownMark}</div>` : ''}`;
-    grid.appendChild(node);
-  });
-}
 
 let thinkLines = [];
 let thinkTimer = null;
@@ -630,7 +683,7 @@ function clearThink(){
   document.getElementById('thinkStream').innerHTML = '';
 }
 
-async function runARIA(){
+async function runARIA(){ // AGNOSIA engine entry point
   const btn = document.getElementById('ariaBtn');
   btn.classList.add('running');
   btn.textContent = '⏳ Imagining unknown scenarios…';
@@ -663,8 +716,12 @@ async function runARIA(){
   const social = document.getElementById('social').checked;
   const blackswan = document.getElementById('blackswan').checked;
   const depth = parseInt(document.getElementById('depth').value);
+  const cityName = document.getElementById('cityName').value || 'Unknown Location';
+  const popSize = document.getElementById('popSize').value;
+  const localIndustry = document.getElementById('localIndustry').value;
+  const localNotes = document.getElementById('localNotes').value;
 
-  await addThink(`[ ARIA ] Initializing imagination engine for: ${hospName}`, 'info', 0);
+  await addThink(`[ AGNOSIA ] Initializing imagination engine for: ${hospName} · ${cityName}`, 'info', 0);
   await addThink(`[ MODE ] Operating in UNKNOWN UNKNOWN space — scenarios outside any existing risk register`, 'unk', 300);
   await addThink(`[ WORLD ] Loading regional context: ${region.replace(/_/g,' ').toUpperCase()}`, 'info', 700);
   await addThink(`[ DEMO ] Median age: ${medAge} · Uninsured: ${uninsured}% · Poverty: ${poverty}%`, 'info', 1100);
@@ -673,7 +730,7 @@ async function runARIA(){
   if(techfail) await addThink(`[ TECH ] Emergent technology failure modes: ACTIVE — systems not yet stress-tested`, 'ok', 2300);
   if(social) await addThink(`[ SOCIAL ] Behavioral emergence signals: ACTIVE — coordination failure + social contagion`, 'ok', 2700);
   if(blackswan) await addThink(`[ ⚠ BLACKSWAN ] Tail-risk imagination activated — events with no precedent`, 'warn', 3100);
-  await addThink(`[ ARIA ] World model constructed. Entering imagination phase — generating the unanticipatable…`, 'unk', 3500);
+  await addThink(`[ AGNOSIA ] World model constructed · Local context: ${cityName} · Entering imagination phase…`, 'unk', 3500);
 
   setBadge('badge1','WORLD MODEL: READY','low');
   setBadge('badge2','IMAGINATION: ACTIVE','running');
@@ -724,7 +781,7 @@ async function runARIA(){
 
   await addThink(`[ EVAL ] Unknown risk composite score: ${composite}/100 — these risks have no existing mitigation`, composite>60?'warn':'ok', 7700);
   await addThink(`[ EVAL ] Estimated maximum unanticipated exposure: ${fmt$M(maxExposure)}`, 'warn', 8300);
-  await addThink(`[ ARIA ] ✓ ${risks.length} unknown scenarios registered. ${risks.filter(r=>r.sev==='critical').length} CRITICAL · ${risks.filter(r=>r.sev==='high').length} HIGH without any existing playbook.`, 'ok', 9000);
+  await addThink(`[ AGNOSIA ] ✓ ${risks.length} unknown scenarios registered. ${risks.filter(r=>r.sev==='critical').length} CRITICAL · ${risks.filter(r=>r.sev==='high').length} HIGH without any existing playbook.`, 'ok', 9000);
 
   setBadge('badge3','EVAL: COMPLETE','low');
 
@@ -734,14 +791,14 @@ async function runARIA(){
     document.getElementById('kpiTopProb').textContent = topProb+'%';
     document.getElementById('kpiExposure').textContent = fmt$M(maxExposure);
 
-    document.getElementById('pageTitle').innerHTML = `${hospName} — Unknown Risk Register <small>${risks.length} unanticipatable scenarios · Composite score ${composite}/100</small>`;
+    document.getElementById('pageTitle').innerHTML = `AGNOSIA — ${hospName} · ${cityName} <small>${risks.length} unanticipatable scenarios · Composite score ${composite}/100</small>`;
 
     updateCatChart(risks);
     updateMatrixChart(risks);
     renderWorldSignals(region, climate, geopolitical, techfail, infraAge, medAge, poverty);
     renderRiskRegister(risks, currentFilter);
-    renderDeptGrid(computeDeptImpacts(risks[0]), CAT_DEPT_CASCADE[risks[0].cat] || CAT_DEPT_CASCADE['unknown']);
-    renderCascade(risks[0]);
+    renderLocalContextAgnosia(cityName, popSize, localIndustry, localNotes, infraAge, beds, facilType, hospName);
+    renderUnknownCascadeStory(risks[0], computeDeptImpacts(risks[0]), cityName, facilType);
     renderAdaptiveRecs(risks, beds, infraAge);
 
     statusDot.style.background = composite>60?'var(--danger)':'var(--warn)';
@@ -750,7 +807,7 @@ async function runARIA(){
     statusLabel.style.color = composite>60?'var(--danger)':'var(--warn)';
 
     btn.classList.remove('running');
-    btn.textContent = '🔮 Re-run ARIA Agent';
+    btn.textContent = '🔮 Re-run AGNOSIA Engine';
     btn.disabled = false;
   }, 9600);
 }
@@ -767,36 +824,119 @@ function computeDeptImpacts(topRisk){
   return impacts;
 }
 
-function renderCascade(risk){
-  if (!risk) return;
+function renderLocalContextAgnosia(cityName, popSize, localIndustry, localNotes, infraAge, beds, facilType, hospName) {
+  const panel = document.getElementById('contextPanel');
+  document.getElementById('contextCityName').textContent = `${hospName} · ${cityName}`;
+  const popLabels = { small:'< 50K', mid:'50K–250K', large:'250K–1M', metro:'1M+' };
+  const industryLabels = { agriculture:'Agriculture', manufacturing:'Manufacturing', energy:'Energy / O&G', tech:'Technology', tourism:'Tourism', government:'Government', healthcare:'Healthcare Hub', mixed:'Mixed' };
+  const facilLabels = { community:'Community Hospital', academic:'Academic Medical Center', rural:'Rural Critical Access', trauma:'Level I Trauma Center', childrens:"Children's Hospital", veterans:'Veterans Affairs' };
+  const unknownAmplifiers = [];
+  if (localIndustry === 'manufacturing' || localIndustry === 'energy') unknownAmplifiers.push('Industrial proximity creates invisible chemical exposure vectors outside standard risk registers');
+  if (localIndustry === 'agriculture') unknownAmplifiers.push('Agricultural chemicals and seasonal patterns generate novel exposure combinations not in toxidrome databases');
+  if (localIndustry === 'tourism') unknownAmplifiers.push('High population turnover creates unknown pathogen introduction pathways from diverse geographic sources');
+  if (parseInt(infraAge) > 30) unknownAmplifiers.push('Aging infrastructure contains unknown material interaction risks — especially relevant for AGNOSIA scenarios involving novel failure modes');
+  if (parseInt(beds) < 100) unknownAmplifiers.push('Small facility has no mutual aid fallback — unknown surges must be absorbed in full with existing capacity');
+  if (localNotes && localNotes.trim()) unknownAmplifiers.push(`<strong>Noted local context:</strong> ${localNotes.trim()} — AGNOSIA will generate scenarios that intersect with these factors`);
+  const stats = [
+    { label:'Location', val: cityName, sub: `${popLabels[popSize] || popSize} population` },
+    { label:'Facility', val: facilLabels[facilType] || facilType, sub: `${beds} beds · ${infraAge} yr old building` },
+    { label:'Local Industry', val: industryLabels[localIndustry] || localIndustry, sub: (localIndustry === 'manufacturing' || localIndustry === 'energy') ? '⚠ Unknown exposure risk' : 'Context factor active' },
+  ];
+  document.getElementById('contextGrid').innerHTML = stats.map(s => `
+    <div class="context-stat"><div class="cs-label">${s.label}</div><div class="cs-val">${s.val}</div><div class="cs-sub">${s.sub}</div></div>
+  `).join('');
+  document.getElementById('contextNotes').innerHTML = unknownAmplifiers.length
+    ? unknownAmplifiers.map(n => `• ${n}`).join('<br>')
+    : '• No specific unknown amplifiers identified — standard AGNOSIA scenario generation applies.';
+  panel.style.display = 'block';
+}
+
+function renderUnknownCascadeStory(risk, impacts, cityName, facilType) {
+  if (!risk || !impacts) return;
   const cfg = CAT_DEPT_CASCADE[risk.cat] || CAT_DEPT_CASCADE['unknown'];
-  const chain = document.getElementById('cascadeChain');
-  chain.innerHTML = '';
+  const story = document.getElementById('cascadeStory');
+  const title = document.getElementById('deptTitle');
+  const subtitle = document.getElementById('deptSubtitle');
+  const facilLabels = { community:'Community Hospital', academic:'Academic Medical Center', rural:'Rural Critical Access', trauma:'Level I Trauma Center', childrens:"Children's Hospital", veterans:'VA Hospital' };
 
-  cfg.primary.forEach(id => {
-    const d = DEPARTMENTS_ARIA.find(x=>x.id===id);
-    const el = document.createElement('span');
-    el.className = 'cascade-tag trigger';
-    el.textContent = `⚡ ${d ? d.name : id}`;
-    chain.appendChild(el);
-  });
-  const arrow = document.createElement('span');
-  arrow.className = 'cascade-tag';
-  arrow.textContent = '→ unknown pathway →';
-  chain.appendChild(arrow);
-  cfg.cascade.forEach(id => {
-    const d = DEPARTMENTS_ARIA.find(x=>x.id===id);
-    const el = document.createElement('span');
-    el.className = 'cascade-tag';
-    el.style.background = '#1a1030';
-    el.style.color = '#a78bfa';
-    el.textContent = d ? d.name : id;
-    chain.appendChild(el);
+  title.textContent = `🏥 Unknown Failure Cascade — "${risk.name}"`;
+  subtitle.textContent = `How this unanticipated scenario would propagate through ${facilLabels[facilType] || facilType} at ${cityName} · Unknown pathway — cascade boundaries cannot be precisely defined in advance`;
+
+  const sorted = DEPARTMENTS_ARIA
+    .map(d => ({ ...d, score: impacts[d.id] || 0 }))
+    .filter(d => d.score > 15)
+    .sort((a, b) => b.score - a.score);
+
+  story.innerHTML = '';
+  const isPrimary = id => cfg.primary.includes(id);
+
+  sorted.forEach((d, i) => {
+    const prim = isPrimary(d.id);
+    const sevCls = d.score >= 70 ? 'crit' : d.score >= 45 ? 'high' : 'med';
+    const pillBg = d.score >= 70 ? 'rgba(239,68,68,0.2)' : d.score >= 45 ? 'rgba(245,158,11,0.2)' : 'rgba(167,139,250,0.2)';
+    const pillColor = d.score >= 70 ? '#ef4444' : d.score >= 45 ? '#f59e0b' : '#a78bfa';
+    const barColor = pillColor;
+    const sevLabel = d.score >= 70 ? 'Critical' : d.score >= 45 ? 'High' : 'Moderate';
+    const triggerLabel = prim ? ' · ⚡ Trigger point' : ' · → Cascade';
+    const timingNote = prim ? 'Direct trigger' : `Via unknown pathway from ${cfg.primary.join('/')}`;
+
+    // Generic unknown narrative per dept
+    const UNKNOWN_WHAT = {
+      ED:'Emergency Department overwhelmed by this unknown presentation — triage protocols do not match the scenario',
+      ICU:'ICU faces patient deterioration from a cause outside existing clinical protocols',
+      OR:'Surgery and OR disrupted — the failure mode affects either access, supplies, or patient safety in an unknown way',
+      EHR:'Electronic health records and IT systems disrupted — the attack vector or failure pathway is not in any existing playbook',
+      PHARM:'Pharmacy and medication supply chain affected — substitution options may not exist for this scenario',
+      RAD:'Radiology and imaging disrupted — clinical decisions must proceed without imaging support',
+      LAB:'Laboratory services compromised — test results unavailable or unreliable for this scenario type',
+      POWER:'Power and utilities infrastructure destabilized — cascade into clinical systems begins',
+      SUPPLY:'Supply chain disrupted in an unknown configuration — standard shortage protocols may not apply',
+      ADMIN:'Administrative coordination fails — the scenario creates demands outside any staffing or operations protocol',
+    };
+    const UNKNOWN_CONSEQUENCE = {
+      ED:'Staff may inadvertently escalate the scenario by applying incorrect response protocols',
+      ICU:'Care quality degrades as staff improvise responses to an uncharted clinical situation',
+      OR:'Surgical caseload backs up; emergent cases must proceed under improvised conditions',
+      EHR:'Entire clinical operation degrades to paper-based processes for an unknown duration',
+      PHARM:'Medication errors increase; some patients may not receive appropriate treatment at all',
+      RAD:'Clinical decision-making is impaired — imaging-dependent diagnoses delayed indefinitely',
+      LAB:'Critical clinical decisions made without laboratory confirmation — increased error risk',
+      POWER:'Every department dependent on powered equipment enters simultaneous crisis',
+      SUPPLY:'Care rationing begins — which patients get what supplies becomes a clinical ethics decision',
+      ADMIN:'Coordination breakdowns amplify every other department failure — the meta-cascade accelerates',
+    };
+
+    const step = document.createElement('div');
+    step.className = 'cascade-step';
+    step.innerHTML = `
+      <div class="step-num ${sevCls}">${i + 1}</div>
+      <div class="step-body">
+        <div class="step-dept">
+          ${d.icon} ${d.name}
+          <span class="step-impact-pill" style="background:${pillBg};color:${pillColor}">${sevLabel} · ${d.score}/100${triggerLabel}</span>
+          <span style="font-size:10px;color:var(--muted);font-weight:400;margin-left:4px">${timingNote}</span>
+        </div>
+        <div class="step-desc">${UNKNOWN_WHAT[d.id] || 'Department disrupted by this unknown event'}</div>
+        <div class="step-consequence">→ ${UNKNOWN_CONSEQUENCE[d.id] || 'Downstream impact — cascade pathway unknown until event occurs'}</div>
+        <div style="font-size:10px;color:var(--accent2);margin-top:3px;font-style:italic">⚠ No existing protocol covers this cascade — adaptive response required</div>
+        <div class="dept-score-bar">
+          <div class="dept-score-track"><div class="dept-score-fill" style="width:0%;background:${barColor}" data-w="${d.score}"></div></div>
+          <span class="dept-score-label" style="color:${barColor}">${d.score}%</span>
+        </div>
+      </div>
+    `;
+    story.appendChild(step);
   });
 
-  document.getElementById('cascadeNote').textContent = cfg.note;
-  document.getElementById('cascadeArea').style.display = 'block';
-  document.getElementById('deptTitle').textContent = `🏥 Department Vulnerability Network — "${risk.name}"`;
+  // Add cascade rationale at bottom
+  const note = document.createElement('div');
+  note.style.cssText = 'margin-top:12px;padding:10px;background:rgba(167,139,250,0.07);border-radius:6px;font-size:11px;color:var(--accent2);border-left:2px solid var(--accent);line-height:1.6';
+  note.innerHTML = `<strong>Why the cascade boundaries are uncertain:</strong> ${cfg.note}`;
+  story.appendChild(note);
+
+  requestAnimationFrame(() => {
+    story.querySelectorAll('.dept-score-fill').forEach(b => { b.style.width = b.dataset.w + '%'; });
+  });
 }
 
 function setBadge(id, text, state){
@@ -1055,11 +1195,11 @@ function openRiskModal(r, rank){
   const beds = document.getElementById('beds').value;
   const financial = fmt$M(clamp(parseInt(beds)*rand(1500,5000)*(r.impact/50), 100000, 500000000));
 
-  // Also trigger CBA
+  // Also trigger CBA and cascade story
   renderCBA(r, beds);
-  // Update dept grid for this scenario
-  renderDeptGrid(computeDeptImpacts(r), CAT_DEPT_CASCADE[r.cat] || CAT_DEPT_CASCADE['unknown']);
-  renderCascade(r);
+  const cityName = document.getElementById('cityName').value || 'Unknown Location';
+  const facilType = document.getElementById('facilType').value;
+  renderUnknownCascadeStory(r, computeDeptImpacts(r), cityName, facilType);
 
   document.getElementById('modalContent').innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
